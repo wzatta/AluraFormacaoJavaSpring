@@ -1,0 +1,25 @@
+package com.estudojava.screenmatch.modelo;
+
+import com.estudojava.screenmatch.calculos.Classificavel;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+public class Filme extends Titulo implements Classificavel {
+
+	private String diretor;
+
+	@Override
+	public int getClassficacao() {
+		return (int) this.pegaMedia() / 2;
+	}
+	
+}

@@ -1,0 +1,16 @@
+package com.estudojava.screenmatch.modelo;
+
+public class Serie {
+	
+	private String nome;
+	private int anoDeLancamento;
+	private boolean incluidoNoPlano;
+	private double avaliacao;
+	private int totalDeAvaliacoes;
+	private int duracaoEmMinutos;
+
+	
+
+	
+	
+}

@@ -1,0 +1,22 @@
+package com.cilazatta.vollMed.dto.mapper;
+
+import com.cilazatta.vollMed.dto.CadastroDeMedicosDTO;
+import com.cilazatta.vollMed.entities.CadastroDeMedicos;
+
+public class CadastroDeMedicosMapper {
+	
+	public CadastroDeMedicosDTO toDTO(CadastroDeMedicos medicos) {
+		return new CadastroDeMedicosDTO(medicos.getId(),medicos.getNome(), medicos.getEmail(), 
+				medicos.getTelefone(), medicos.getCrm(), medicos.getEspecialidade(), medicos.getEndereco());
+	}
+	
+	public CadastroDeMedicos toObj(CadastroDeMedicosDTO dto) {
+		
+		CadastroDeMedicos cadMedico = new CadastroDeMedicos();
+		if(dto.id()!=null) {
+			cadMedico.set
+		}
+		
+	}
+
+}

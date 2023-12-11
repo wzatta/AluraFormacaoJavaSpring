@@ -1,0 +1,26 @@
+package com.estudojava.screenmatch;
+
+import com.estudojava.screenmatch.modelo.Filme;
+
+public class Principal {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		
+		Filme favorito = new Filme();
+		favorito.setNome("The Matrix");;
+		favorito.setAnoDeLancamento(1999);
+		favorito.setDuracaoEmMinutos(135);
+		favorito.setIncluidoNoPlano(true);
+
+       
+        favorito.avalia(9d);;
+        favorito.avalia(8d);
+        favorito.avalia(9d);
+        
+        favorito.exibiFichaTecnica();
+        favorito.pegaMedia();
+
+	}
+
+}

@@ -1,0 +1,12 @@
+package com.estudojava.screenmatch.calculos;
+
+public class FiltroRecomendacao {
+	private String recomendacao;
+	
+	public void filtra(Classificavel classificavel) {
+		if(classificavel.getClassficacao()>=4) {
+			System.out.println("Esta entre os preferidos do momento");
+		}
+	}
+
+}

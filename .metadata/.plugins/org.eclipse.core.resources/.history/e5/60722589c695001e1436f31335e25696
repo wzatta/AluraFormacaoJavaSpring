@@ -1,0 +1,5 @@
+package com.cilazatta.vollMed.repository;
+
+public interface CadastroDeMedicosPageRepository {
+
+}

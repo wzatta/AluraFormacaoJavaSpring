@@ -1,0 +1,37 @@
+package com.estudojava.screenmatch.modelo;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+public class Titulo {
+
+	private String nome;
+	private int anoDeLancamento;
+	private boolean incluidoNoPlano;
+	private double somaDasAvaliacao;
+	private int totalDeAvaliacoes;
+	private int duracaoEmMinutos;
+	
+	public void exibiFichaTecnica() {
+		System.out.println(this.toString());
+	}
+	
+	public void avalia(double nota) {
+		this.somaDasAvaliacao +=nota;
+		this.totalDeAvaliacoes++;
+	}
+	
+	public double pegaMedia() {
+		return this.somaDasAvaliacao / this.totalDeAvaliacoes;
+	}
+	
+	
+}

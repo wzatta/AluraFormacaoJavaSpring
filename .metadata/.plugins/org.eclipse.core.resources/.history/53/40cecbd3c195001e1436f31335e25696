@@ -1,0 +1,10 @@
+package com.cilazatta.vollMed.services;
+
+import com.cilazatta.vollMed.repository.CadastroDePacienteRepository;
+
+public class CadastroDePacienteService {
+	
+	private CadastroDePacienteRepository repo;
+	
+
+}

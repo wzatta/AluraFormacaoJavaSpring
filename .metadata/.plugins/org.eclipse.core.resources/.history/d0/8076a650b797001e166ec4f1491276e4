@@ -1,0 +1,5 @@
+package com.cilazatta.vollMed.dto;
+
+public record CadastroDeMedicosAtualizaDTO(Long id, String nome, String telefone, Endereco endereco ) {
+
+}

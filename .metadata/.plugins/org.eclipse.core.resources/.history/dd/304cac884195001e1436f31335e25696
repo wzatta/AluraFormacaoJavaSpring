@@ -1,0 +1,24 @@
+package com.cilazatta.vollMed.services;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.cilazatta.vollMed.dto.CadastroDeMedicosDTO;
+import com.cilazatta.vollMed.repository.CadastroDeMedicosRepository;
+
+@Service
+public class CadastroDeMedicosService {
+
+	private final CadastroDeMedicosRepository medicoRepo;
+	
+	public CadastroDeMedicosService(CadastroDeMedicosRepository repo) {
+		this.medicoRepo = repo;
+	}
+
+	public List<CadastroDeMedicosDTO> findAll() {
+		
+		return null;
+	}
+	
+}

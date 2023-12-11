@@ -1,0 +1,41 @@
+package com.cilazatta.vollMed.services;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.cilazatta.vollMed.dto.CadastroDePacienteDTO;
+import com.cilazatta.vollMed.dto.mapper.CadastroDePacienteMapper;
+import com.cilazatta.vollMed.entities.CadastroDePaciente;
+import com.cilazatta.vollMed.exceptions.RecordNotFoundException;
+import com.cilazatta.vollMed.repository.CadastroDePacienteRepository;
+
+public class CadastroDePacienteService {
+	
+	private final CadastroDePacienteRepository repo;
+	private final CadastroDePacienteMapper mapper;
+	
+	public CadastroDePacienteService(CadastroDePacienteRepository repo, CadastroDePacienteMapper mapper) {
+		this.repo = repo;
+		this.mapper = mapper;
+	}
+	
+	public CadastroDePacienteDTO cadastrar(CadastroDePacienteDTO dto) {
+			CadastroDePaciente paciente = mapper.toEntity(dto);
+			paciente = repo.save(paciente);
+			return mapper.toDTO(paciente);
+	}
+	
+	public List<CadastroDePacienteDTO> findAll(){
+		return repo.findAll().stream()
+				.map(mapper::toDTO)
+				.collect(Collectors.toList());
+	}
+	
+	public CadastroDePacienteDTO findByid(Long id) {
+			CadastroDePaciente paciente = repo.findById(id)
+					.orElseThrow(()-> new RecordNotFoundException(id));
+			return mapper.toDTO(paciente);
+	}
+	
+
+}

@@ -1,0 +1,28 @@
+package com.estudojava.screenmatch;
+
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import com.estudojava.screenmatch.modelo.Filme;
+
+@SpringBootApplication
+public class ScreenmatchApplication {
+
+	public static void main(String[] args) {
+//		SpringApplication.run(ScreenmatchApplication.class, args);
+	
+		Filme favorito = new Filme();
+		favorito.setNome("The Matrix");
+		favorito.setAnoDeLancamento(1999);
+		favorito.setDuracaoEmMinutos(135);
+		favorito.setIncluidoNoPlano(true);
+
+       
+        favorito.avalia(9);
+        favorito.avalia(8);
+        favorito.avalia(9);
+        
+        favorito.exibiFichaTecnica();
+		
+	}
+
+}

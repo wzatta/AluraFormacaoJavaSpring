@@ -1,0 +1,17 @@
+package com.estudojava.screenmatch.calculos;
+
+import com.estudojava.screenmatch.modelo.Titulo;
+
+public class CalculadoraDeTempo {
+	private int tempoTotal;
+	
+	public int getTempototal() {
+		return tempoTotal;
+	}
+	
+	public void inclui(Titulo titulo) {
+		this.tempoTotal += titulo.getDuracaoEmMinutos();
+	}
+	
+
+}
