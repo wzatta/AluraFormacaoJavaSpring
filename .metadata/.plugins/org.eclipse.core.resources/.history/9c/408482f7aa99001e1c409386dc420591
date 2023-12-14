@@ -1,0 +1,23 @@
+package com.cilazatta.vollMed.dto.mapper;
+
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
+import com.cilazatta.vollMed.dto.AgendamentoDeConsultaDTO;
+import com.cilazatta.vollMed.entities.AgendamentoDeConsultas;
+
+public class AgendamentoDeConsultasMapper {
+	
+	public AgendamentoDeConsultaDTO toDTO(AgendamentoDeConsultas obj) {
+		return new AgendamentoDeConsultaDTO(
+				obj.getPaciente().getId(),
+				obj.getPaciente().getNome(),
+				obj.getMedico().getId(),
+				obj.getMedico().getNome(),
+				obj.getDataDoAgendamento(),
+				obj.getDataAgendada(),
+				obj.getHoraAgendada()
+				);
+	}
+
+}

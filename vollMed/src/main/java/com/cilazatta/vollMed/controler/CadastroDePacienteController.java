@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,10 +14,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.cilazatta.vollMed.dto.CadastroDePacienteAtualizaDTO;
 import com.cilazatta.vollMed.dto.CadastroDePacienteDTO;
 import com.cilazatta.vollMed.dto.CadastroDePacienteListaDTO;
+import com.cilazatta.vollMed.dto.RequestByIdDTO;
 import com.cilazatta.vollMed.services.CadastroDePacienteService;
 
 import jakarta.transaction.Transactional;
@@ -37,9 +40,11 @@ public class CadastroDePacienteController {
 
 	@PostMapping
 	@Transactional
-	public ResponseEntity<CadastroDePacienteDTO> cadastrar(@Valid @RequestBody CadastroDePacienteDTO dto) {
+	public ResponseEntity<CadastroDePacienteDTO> cadastrar(
+			@Valid @RequestBody CadastroDePacienteDTO dto, UriComponentsBuilder uriBuilder) {
 		dto = service.cadastrar(dto);
-		return ResponseEntity.ok().body(dto);
+		var uri = uriBuilder.path("paciente/{id}").buildAndExpand(dto.id()).toUri();
+		return ResponseEntity.created(uri).body(dto);
 	}
 	
 	
@@ -49,7 +54,7 @@ public class CadastroDePacienteController {
 		dto = service.atualizarPaciente(dto);
 		return ResponseEntity.ok().body(dto);
 	}
-
+	
 	@GetMapping
 	public ResponseEntity<List<CadastroDePacienteDTO>> findAll() {
 		List<CadastroDePacienteDTO> list = service.findAll();
@@ -66,6 +71,12 @@ public class CadastroDePacienteController {
 	public ResponseEntity<CadastroDePacienteDTO> findById(@PathVariable @NotNull @Positive Long id) {
 		CadastroDePacienteDTO dto = service.findByid(id);
 		return ResponseEntity.ok().body(dto);
+	}
+	
+	@DeleteMapping
+	public ResponseEntity<Void> deletePaciente(@RequestBody RequestByIdDTO dto){
+		this.service.softDelete(dto);
+		return ResponseEntity.noContent().build();
 	}
 
 }

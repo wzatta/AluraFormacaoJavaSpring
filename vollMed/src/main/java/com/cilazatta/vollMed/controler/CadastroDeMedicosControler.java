@@ -16,10 +16,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.cilazatta.vollMed.dto.CadastroDeMedicosAtualizaDTO;
 import com.cilazatta.vollMed.dto.CadastroDeMedicosDTO;
 import com.cilazatta.vollMed.dto.CadastroDeMedicosListaDTO;
+import com.cilazatta.vollMed.dto.RequestByIdDTO;
 import com.cilazatta.vollMed.services.CadastroDeMedicosService;
 
 import jakarta.transaction.Transactional;
@@ -40,9 +42,12 @@ public class CadastroDeMedicosControler {
 
 	@PostMapping
 	@Transactional
-	public ResponseEntity<CadastroDeMedicosDTO> cadastrar(@RequestBody @Valid CadastroDeMedicosDTO medicos) {
+	public ResponseEntity<CadastroDeMedicosDTO> cadastrar(@RequestBody @Valid CadastroDeMedicosDTO medicos,
+			UriComponentsBuilder uriBuilder) {
 		CadastroDeMedicosDTO dto = service.cadastrar(medicos);
-		return ResponseEntity.ok().body(dto);
+//		return ResponseEntity.ok().body(dto);
+		var uri = uriBuilder.path("/medicos/{id}").buildAndExpand(dto.id()).toUri();
+		return ResponseEntity.created(uri).body(dto);
 	}
 	
 	@PutMapping
@@ -54,8 +59,8 @@ public class CadastroDeMedicosControler {
 
 	@DeleteMapping
 	@Transactional
-	public ResponseEntity<Void> sofDelete(@RequestBody CadastroDeMedicosAtualizaDTO dto){
-		service.softDelete(dto);;
+	public ResponseEntity<Void> sofDelete(@RequestBody RequestByIdDTO dto){
+		service.softDelete(dto);
 		return ResponseEntity.noContent().build();
 	}
 	
@@ -66,9 +71,8 @@ public class CadastroDeMedicosControler {
 	public ResponseEntity<List<CadastroDeMedicosDTO>> findAll(){
 		List<CadastroDeMedicosDTO> lista = new ArrayList<>();;
 		lista = service.findAll();
-		return ResponseEntity.ok().body(lista);
+		return ResponseEntity.ok(lista);
 	}
-	
 	
 	@GetMapping("/lista")
 	public ResponseEntity<Page<CadastroDeMedicosListaDTO>> listarMedicos(Pageable paginacao){

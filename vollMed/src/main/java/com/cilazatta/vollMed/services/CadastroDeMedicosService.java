@@ -1,6 +1,7 @@
 package com.cilazatta.vollMed.services;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -11,7 +12,9 @@ import org.springframework.stereotype.Service;
 import com.cilazatta.vollMed.dto.CadastroDeMedicosAtualizaDTO;
 import com.cilazatta.vollMed.dto.CadastroDeMedicosDTO;
 import com.cilazatta.vollMed.dto.CadastroDeMedicosListaDTO;
+import com.cilazatta.vollMed.dto.RequestByIdDTO;
 import com.cilazatta.vollMed.dto.mapper.CadastroDeMedicosMapper;
+import com.cilazatta.vollMed.entities.AgendamentoDeConsultas;
 import com.cilazatta.vollMed.entities.CadastroDeMedicos;
 import com.cilazatta.vollMed.exceptions.RecordNotFoundException;
 import com.cilazatta.vollMed.repository.CadastroDeMedicosRepository;
@@ -20,11 +23,15 @@ import com.cilazatta.vollMed.repository.CadastroDeMedicosRepository;
 public class CadastroDeMedicosService {
 
 	private final CadastroDeMedicosRepository repo;
+	private final AgendamentoDeConsultaService service;
 	private final CadastroDeMedicosMapper mapper;
 
-	public CadastroDeMedicosService(CadastroDeMedicosRepository repo, CadastroDeMedicosMapper mapper) {
+	public CadastroDeMedicosService(CadastroDeMedicosRepository repo, 
+			CadastroDeMedicosMapper mapper,
+			AgendamentoDeConsultaService service) {
 		this.repo = repo;
 		this.mapper = mapper;
+		this.service = service;
 	}
 
 	public CadastroDeMedicosDTO cadastrar(CadastroDeMedicosDTO dto) {
@@ -41,7 +48,7 @@ public class CadastroDeMedicosService {
 		return mapper.toAtualizaDTO(medicos);
 	}
 	
-	public void softDelete(CadastroDeMedicosAtualizaDTO dto) {
+	public void softDelete(RequestByIdDTO dto) {
 		CadastroDeMedicos medicos = repo.getReferenceById(dto.id());
 		medicos.softDelete();
 	}

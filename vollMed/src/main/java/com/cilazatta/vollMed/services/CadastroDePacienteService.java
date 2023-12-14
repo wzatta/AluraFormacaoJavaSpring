@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.cilazatta.vollMed.dto.CadastroDePacienteAtualizaDTO;
 import com.cilazatta.vollMed.dto.CadastroDePacienteDTO;
 import com.cilazatta.vollMed.dto.CadastroDePacienteListaDTO;
+import com.cilazatta.vollMed.dto.RequestByIdDTO;
 import com.cilazatta.vollMed.dto.mapper.CadastroDePacienteMapper;
 import com.cilazatta.vollMed.entities.CadastroDePaciente;
 import com.cilazatta.vollMed.exceptions.RecordNotFoundException;
@@ -41,7 +42,7 @@ public class CadastroDePacienteService {
 		return mapper.toAtualizaDTO(paciente);
 	}
 	
-	public void softDelete(CadastroDePacienteAtualizaDTO dto) {
+	public void softDelete(RequestByIdDTO dto) {
 		CadastroDePaciente paciente = new CadastroDePaciente();
 		paciente = repo.getReferenceById(dto.id());
 		paciente.softDelete();

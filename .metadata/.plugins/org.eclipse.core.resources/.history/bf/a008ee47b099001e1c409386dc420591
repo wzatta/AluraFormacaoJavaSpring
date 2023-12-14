@@ -1,0 +1,5 @@
+package com.cilazatta.vollMed.dto;
+
+public record ResponseAgendaMedicoDTO(String data, String horario, String paciente, String medico) {
+
+}

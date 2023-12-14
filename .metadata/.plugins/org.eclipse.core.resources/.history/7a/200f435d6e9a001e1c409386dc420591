@@ -1,0 +1,26 @@
+package com.cilazatta.vollMed.enums;
+
+public enum HorariosDeConsultas {
+	
+ 	HOR01(1,"07:30"),
+	HOR02(2,"08:30"),
+	HOR03(3,"09:30");
+
+	
+	private final int valor;
+	private final String horario;
+	
+	HorariosDeConsultas(int valor, String horario){
+		this.valor = valor;
+		this.horario = horario;
+	}
+	
+	public int getValor() {
+		return this.valor;
+	}
+	
+	public String getHorario() {
+		return this.horario;
+	}
+	
+}

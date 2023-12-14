@@ -1,0 +1,23 @@
+package com.cilazatta.vollMed.repository;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.cilazatta.vollMed.entities.AgendamentoDeConsultas;
+import com.cilazatta.vollMed.entities.CadastroDeMedicos;
+
+public interface AgendamentoDeConsultaRepository extends JpaRepository<AgendamentoDeConsultas, Long> {
+
+		@Query("SELECT u from AgendamentoDeConsultas u where u.medico = ?1")
+		List<AgendamentoDeConsultas> findBymedico(CadastroDeMedicos medico);
+
+		@Query("SELECT u from AgendamentoDeConsultas u where u.medico = ?1 and u.dataagenda >= ?2")
+		List<AgendamentoDeConsultas> findBymedicoAnddataagendada(CadastroDeMedicos medico, LocalDate data);
+
+
+
+
+}

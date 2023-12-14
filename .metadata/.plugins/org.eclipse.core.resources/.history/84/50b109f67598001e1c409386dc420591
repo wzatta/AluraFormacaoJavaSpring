@@ -1,0 +1,6 @@
+package com.cilazatta.vollMed.dto;
+
+public record AgendamentoDeConsultaDTO(Long idPaciente, String nomePaciente,
+		Long idMedico, String NomeMedico ) {
+
+}

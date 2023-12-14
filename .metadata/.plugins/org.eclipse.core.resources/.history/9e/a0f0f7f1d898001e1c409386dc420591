@@ -1,0 +1,46 @@
+package com.cilazatta.vollMed.services;
+
+import org.springframework.stereotype.Service;
+
+import com.cilazatta.vollMed.dto.AgendamentoDeConsultaDTO;
+import com.cilazatta.vollMed.entities.AgendamentoDeConsultas;
+import com.cilazatta.vollMed.entities.CadastroDeMedicos;
+import com.cilazatta.vollMed.entities.CadastroDePaciente;
+import com.cilazatta.vollMed.repository.AgendamentoDeConsultaRepository;
+import com.cilazatta.vollMed.repository.CadastroDeMedicosRepository;
+import com.cilazatta.vollMed.repository.CadastroDePacienteRepository;
+
+@Service
+public class AgendamentoDeConsultaService {
+
+	private final CadastroDePacienteRepository pacienteRepo;
+	private final CadastroDeMedicosRepository medicoRepo;
+	private final AgendamentoDeConsultaRepository agendaRepo;
+	
+	public AgendamentoDeConsultaService(CadastroDePacienteRepository pacienteRepo,
+			CadastroDeMedicosRepository medicoRepo, AgendamentoDeConsultaRepository agendaRepo
+			) {
+			this.agendaRepo = agendaRepo;
+			this.medicoRepo = medicoRepo;
+			this.pacienteRepo = pacienteRepo;
+	}
+	
+	public void agendarConsulta(AgendamentoDeConsultaDTO dto) {
+
+		AgendamentoDeConsultas agenda = new AgendamentoDeConsultas();
+
+		if (agenda.verificarHorarioDeAtendimento()) {
+			CadastroDePaciente paciente = this.pacienteRepo.findById(dto.idPaciente()).get();
+			CadastroDeMedicos medico = this.medicoRepo.findById(dto.idMedico()).get();
+			agenda.setPaciente(paciente);
+			agenda.setMedico(medico);
+			agenda.setDataAgendada(dto.dataDaConsuslta());
+			agenda.setHoraAgendada(dto.horario());
+			this.agendaRepo.save(agenda);
+		
+		} else {
+			System.out.println("Horário de Atendimento Segunda a Sabado, 7: as 19 horas");
+		}
+	}
+
+}

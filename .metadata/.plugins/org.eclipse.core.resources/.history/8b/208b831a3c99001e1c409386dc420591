@@ -1,0 +1,36 @@
+package com.cilazatta.vollMed.controler;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.cilazatta.vollMed.dto.AgendamentoDeConsultaDTO;
+import com.cilazatta.vollMed.entities.AgendamentoDeConsultas;
+import com.cilazatta.vollMed.services.AgendamentoDeConsultaService;
+
+import jakarta.validation.Valid;
+
+
+@RequestMapping(value = "/agenda")
+@RestController
+public class AgendamentoDeConsultaController {
+	
+	@Autowired
+	private AgendamentoDeConsultaService service;
+	
+	@PostMapping
+	public ResponseEntity<Void> agendarConsulta(@RequestBody @Valid AgendamentoDeConsultaDTO dto){
+		this.service.agendarConsulta(dto);
+		return ResponseEntity.noContent().build();
+	}
+	
+	@GetMapping
+	public ResponseEntity<AgendamentoDeConsultas> findByMedico(@RequestBody AgendamentoDeConsultaDTO dto){
+		return this.service.findByMedico(dto);
+	}
+
+}

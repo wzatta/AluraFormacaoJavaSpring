@@ -1,0 +1,8 @@
+package com.cilazatta.vollMed.controler;
+
+public class AgendamentoDeConsultaController {
+	
+	private AgendamentoDeConsultasService service;
+	
+
+}
