@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -29,7 +28,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
-@Validated
 @RestController
 @RequestMapping(value = "medicos")
 public class CadastroDeMedicosControler {
@@ -53,8 +51,8 @@ public class CadastroDeMedicosControler {
 	@PutMapping
 	@Transactional
 	public ResponseEntity<CadastroDeMedicosAtualizaDTO> atualizaMedico(@RequestBody CadastroDeMedicosAtualizaDTO dto){
-		CadastroDeMedicosAtualizaDTO lista = service.atualizar(dto);
-		return ResponseEntity.ok().body(lista);
+		dto = service.atualizar(dto);
+		return ResponseEntity.ok().body(dto);
 	}
 
 	@DeleteMapping

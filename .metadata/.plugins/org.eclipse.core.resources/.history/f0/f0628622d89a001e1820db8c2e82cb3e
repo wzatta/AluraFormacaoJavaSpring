@@ -1,0 +1,27 @@
+package com.cilazatta.vollMed.dto;
+
+import com.cilazatta.vollMed.enums.Especialidade;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record CadastroDeMedicosDTO(Long id, 
+		@NotBlank
+		String nome, 
+		
+		@NotBlank
+		@Email
+		String email, 
+		
+		@NotBlank
+		String telefone,
+		
+		@NotBlank
+		String crm, 
+		
+		@NotNull
+		Especialidade especialidade, 
+		
+		EnderecoDTO endereco ) {
+}

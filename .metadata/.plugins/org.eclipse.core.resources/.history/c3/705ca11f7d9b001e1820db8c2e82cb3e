@@ -1,0 +1,5 @@
+package com.cilazatta.vollMed.dto;
+
+public record DadosAutenticacao(String userName, String senha) {
+
+}

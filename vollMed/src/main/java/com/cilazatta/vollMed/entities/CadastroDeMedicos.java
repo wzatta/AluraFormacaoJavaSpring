@@ -104,7 +104,7 @@ public class CadastroDeMedicos {
 			this.setTelefone(dto.telefone());
 		}
 		if (dto.enderecoDto() != null) {
-			this.endereco.atualizaEndereco(dto.enderecoDto());
+		this.endereco.atualizaEndereco(dto.enderecoDto());	
 		}
 
 	}

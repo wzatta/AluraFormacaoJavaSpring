@@ -1,0 +1,29 @@
+package com.cilazatta.vollMed.security;
+
+import org.springframework.stereotype.Service;
+
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
+
+@Service
+public class TokenLocalService {
+	
+	
+	public String gerartoken() {
+		
+		try {
+		    Algorithm algoritimo = Algorithm.HMAC256("123456");
+		    String token = JWT.create()
+		        .withIssuer("API VOLL.MED")
+		        .sign(algoritimo);
+		    return token;
+		} catch (JWTCreationException exception){
+			throw new RuntimeException("Erro ao Gerar o Token JWT", exception);
+		}
+		
+		
+		
+	}
+
+}

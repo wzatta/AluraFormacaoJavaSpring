@@ -1,6 +1,0 @@
-package com.cilazatta.vollMed.dto;
-
-import com.cilazatta.vollMed.enums.Especialidade;
-
-public record MedicosDTO(Long id, String nome, String email, String telefone, String crm,  EnderecoDTO endereco ) {
-}

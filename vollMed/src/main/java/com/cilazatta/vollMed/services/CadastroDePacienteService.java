@@ -58,7 +58,8 @@ public class CadastroDePacienteService {
 	}
 
 	public CadastroDePacienteDTO findByid(Long id) {
-		CadastroDePaciente paciente = repo.findById(id).orElseThrow(() -> new RecordNotFoundException(id));
+		CadastroDePaciente paciente = repo.findById(id)
+				.orElseThrow();
 		return mapper.toDTO(paciente);
 	}
 

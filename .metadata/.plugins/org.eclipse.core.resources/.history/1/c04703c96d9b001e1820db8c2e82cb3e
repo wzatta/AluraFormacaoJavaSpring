@@ -1,0 +1,22 @@
+package com.cilazatta.vollMed.services;
+
+import org.springframework.stereotype.Service;
+
+import com.cilazatta.vollMed.repository.UsuarioRepository;
+
+@Service
+public class UsuarioService {
+
+	private final UsuarioRepository repo;
+	
+	public UsuarioService(UsuarioRepository repo) {
+		this.repo = repo;}
+	
+	public UsurioDTO cadastrar(UsuarioDTO dto) {
+		
+		
+		
+	}
+	
+	
+}

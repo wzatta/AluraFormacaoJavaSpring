@@ -1,0 +1,32 @@
+package com.cilazatta.vollMed.services;
+
+import org.springframework.stereotype.Service;
+
+import com.cilazatta.vollMed.dto.ResponseUsuarioDTO;
+import com.cilazatta.vollMed.dto.UsuarioDTO;
+import com.cilazatta.vollMed.dto.mapper.UsuarioMapper;
+import com.cilazatta.vollMed.entities.Usuario;
+import com.cilazatta.vollMed.repository.UsuarioRepository;
+
+@Service
+public class UsuarioService {
+
+	private final UsuarioRepository repo;
+	private final UsuarioMapper mapper;
+	
+	public UsuarioService(UsuarioRepository repo, UsuarioMapper mapper) {
+		this.repo = repo;
+		this.mapper = mapper;}
+	
+	public ResponseUsuarioDTO cadastrar(UsuarioDTO dto) {
+		Usuario usuario = this.mapper.toOBJ(dto);
+		usuario = this.repo.save(usuario);
+		return this.mapper.toDTO(usuario);
+	}
+	
+	public ResponseUsuarioDTO findById(Long id) {
+		Usuario usuario = repo.findById(id).orElseThrow();
+		return this.mapper.toDTO(usuario);
+	}
+	
+}

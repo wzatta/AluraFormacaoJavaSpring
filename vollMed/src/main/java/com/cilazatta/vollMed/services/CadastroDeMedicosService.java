@@ -43,6 +43,7 @@ public class CadastroDeMedicosService {
 	}
 	
 	public CadastroDeMedicosAtualizaDTO atualizar(CadastroDeMedicosAtualizaDTO dto) {
+		System.out.println(dto);
 		CadastroDeMedicos medicos = repo.getReferenceById(dto.id());
 		medicos.atualizarInformacoes(dto);
 		return mapper.toAtualizaDTO(medicos);
@@ -65,7 +66,7 @@ public class CadastroDeMedicosService {
 	}
 
 	public CadastroDeMedicosDTO findById(Long id) {
-		return repo.findById(id).map(mapper::toDTO).orElseThrow(() -> new RecordNotFoundException(id));
+		return repo.findById(id).map(mapper::toDTO).orElseThrow();
 	}
 
 }

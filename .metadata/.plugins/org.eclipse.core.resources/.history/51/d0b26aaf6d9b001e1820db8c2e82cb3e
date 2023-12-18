@@ -1,0 +1,13 @@
+package com.cilazatta.vollMed.dto.mapper;
+
+import com.cilazatta.vollMed.entities.Usuario;
+
+public class UsuarioMapper {
+	
+	public ResponseUsuarioDTO toDTO(Usuario obj) {
+		return new ResponseUsuarioDTO()
+		
+		
+	}
+
+}

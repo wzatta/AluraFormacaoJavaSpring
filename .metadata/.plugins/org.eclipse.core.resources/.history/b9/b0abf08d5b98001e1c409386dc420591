@@ -1,5 +1,0 @@
-package com.cilazatta.vollMed.repository;
-
-public interface AgendamentoDeConsultaRepository {
-
-}

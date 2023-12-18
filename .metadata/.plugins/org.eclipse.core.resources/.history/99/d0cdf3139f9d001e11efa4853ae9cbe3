@@ -1,0 +1,72 @@
+package com.cilazatta.vollMed.services;
+
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.stereotype.Service;
+
+import com.cilazatta.vollMed.dto.CadastroDeMedicosAtualizaDTO;
+import com.cilazatta.vollMed.dto.CadastroDeMedicosDTO;
+import com.cilazatta.vollMed.dto.CadastroDeMedicosListaDTO;
+import com.cilazatta.vollMed.dto.RequestByIdDTO;
+import com.cilazatta.vollMed.dto.mapper.CadastroDeMedicosMapper;
+import com.cilazatta.vollMed.entities.AgendamentoDeConsultas;
+import com.cilazatta.vollMed.entities.CadastroDeMedicos;
+import com.cilazatta.vollMed.exceptions.RecordNotFoundException;
+import com.cilazatta.vollMed.repository.CadastroDeMedicosRepository;
+
+@Service
+public class CadastroDeMedicosService {
+
+	private final CadastroDeMedicosRepository repo;
+	private final AgendamentoDeConsultaService service;
+	private final CadastroDeMedicosMapper mapper;
+
+	public CadastroDeMedicosService(CadastroDeMedicosRepository repo, 
+			CadastroDeMedicosMapper mapper,
+			AgendamentoDeConsultaService service) {
+		this.repo = repo;
+		this.mapper = mapper;
+		this.service = service;
+	}
+
+	public CadastroDeMedicosDTO cadastrar(CadastroDeMedicosDTO dto) {
+		CadastroDeMedicos medico = new CadastroDeMedicos();
+		medico = mapper.toObj(dto);
+		medico = repo.save(medico);
+		dto = mapper.toDTO(medico);
+		return dto;
+	}
+	
+	public CadastroDeMedicosAtualizaDTO atualizar(CadastroDeMedicosAtualizaDTO dto) {
+		CadastroDeMedicos medicos = repo.getReferenceById(dto.id());
+		medicos.atualizarInformacoes(dto);
+		medicos = this.repo.save(medicos);
+		return mapper.toAtualizaDTO(medicos);
+	}
+	
+	public void softDelete(RequestByIdDTO dto) {
+		CadastroDeMedicos medicos = repo.getReferenceById(dto.id());
+		medicos.softDelete();
+	}
+
+	public List<CadastroDeMedicosDTO> findAll() {
+		return repo.findAll().stream()
+				.filter(r-> r.getIsInativo()==false)
+				.map(mapper::toDTO)
+				.collect(Collectors.toList());
+	}
+
+	public Page<CadastroDeMedicosListaDTO> listaMedicos(@PageableDefault(size = 10, sort = {"nome"} ) Pageable paginacao) {
+		return repo.findAll(paginacao).map(mapper::toListaDTO);
+	}
+
+	public CadastroDeMedicosDTO findById(Long id) {
+		return repo.findById(id).map(mapper::toDTO).orElseThrow();
+	}
+
+}

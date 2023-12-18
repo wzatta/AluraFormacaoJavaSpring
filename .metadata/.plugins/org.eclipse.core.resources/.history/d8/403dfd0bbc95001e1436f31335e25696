@@ -1,5 +1,0 @@
-package com.cilazatta.vollMed.dto;
-
-public record EnderecoDTO(Long id, String logradouro, String numero, String complemento, String bairro, String cidade, String uf, String cep) {
-
-}

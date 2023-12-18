@@ -1,0 +1,28 @@
+package com.cilazatta.vollMed.dto.mapper;
+
+import org.springframework.stereotype.Component;
+
+import com.cilazatta.vollMed.dto.ResponseUsuarioDTO;
+import com.cilazatta.vollMed.dto.UsuarioDTO;
+import com.cilazatta.vollMed.entities.Usuario;
+
+@Component
+public class UsuarioMapper {
+	
+	public ResponseUsuarioDTO toDTO(Usuario obj) {
+		return new ResponseUsuarioDTO(obj.getId(), 
+				obj.getNome(), obj.getUsername());
+	}
+	
+	public Usuario toOBJ(UsuarioDTO dto) {
+		Usuario usuario = new Usuario();
+		if(dto.id()!= null) {
+			usuario.setId(dto.id());
+		}
+		usuario.setNome(dto.nome());
+		usuario.setUserName(dto.userName());
+		usuario.setSenha(dto.senha());
+		return usuario;
+	}
+
+}
