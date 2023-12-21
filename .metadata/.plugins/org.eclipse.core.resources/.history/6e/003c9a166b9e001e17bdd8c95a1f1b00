@@ -1,0 +1,88 @@
+package com.cilazata.entity;
+
+import java.io.Serializable;
+
+import com.cilazatta.dto.BmItemDTO;
+import com.cilazatta.dto.Bm_ItemDTO;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
+public class BmItem implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@EqualsAndHashCode.Include
+	private Long id;
+
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name="bmid", nullable = false)
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+	private Bm bm;
+	
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name="ptlid", nullable = false)
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+	private ProdutoTabelaLocado prodTabLoc;
+	
+	@Setter private Integer qtdeDia = 0;
+	@Setter private Double vLocDiaria = 0.00;
+	@Setter private Double vLocTotal = 0.00;
+
+	public BmItem(long id, Bm bm, ProdutoTabelaLocado prodTabLoc, Integer qtdeDia, Double vLocDiaria,
+			Double vLocTotal) {
+		this.id = id;
+		this.bm = bm;
+		this.prodTabLoc = prodTabLoc;
+		this.qtdeDia = qtdeDia;
+		this.vLocDiaria = vLocDiaria;
+		this.vLocTotal = vLocTotal;
+	}
+	
+	public BmItem(Bm bmmedic, ProdutoTabelaLocado prodloc,  Integer qtdeDia, Double vLocDiaria) {
+		this.bm = bmmedic;
+		this.prodTabLoc = prodloc;
+		this.qtdeDia = qtdeDia;
+		this.vLocDiaria = vLocDiaria;
+		this.vLocTotal = (this.qtdeDia * this.vLocDiaria);
+	}
+	
+	public BmItem(BmItemDTO bmidto){
+		this.id = bmidto.iddto();
+		this.bm = bmidto.bmdto().convert();
+		this.prodTabLoc = bmidto.ptldto().convert();
+		this.qtdeDia = bmidto.qtdeDiadto();
+		this.vLocDiaria = bmidto.vLocDiariadto();
+		this.vLocTotal = bmidto.vLocTotaldto();
+	}
+	
+	public Bm_ItemDTO convert() {
+		return new Bm_ItemDTO(
+				this.id, 
+				this.prodTabLoc.convert(), 
+				this.qtdeDia,
+				this.vLocDiaria,
+				this.vLocTotal);
+	}
+	
+	
+}

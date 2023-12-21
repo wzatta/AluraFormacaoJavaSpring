@@ -1,0 +1,270 @@
+package com.cilazata.services;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFFormulaEvaluator;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.stereotype.Service;
+
+import com.cilazatta.dto.BmDTO;
+import com.cilazatta.dto.Bm_ItemDTO;
+
+@Service
+public class PreencherBmExcel {
+	
+	private Double vtotal = 0.00;
+	
+	public File capturarArquivo() {
+		
+		System.out.println("tive aqui");
+	String pathFile = "C:\\Users\\Waldyr Jr\\Documents\\"
+				+ "ProjetosSpring\\"
+				+ "BoletimMedicao\\"
+				+ "Backend\\src\\main\\java\\com\\cilazata\\configuration\\BmModelo.xlsx";
+	
+	File arquivo = new File(pathFile);
+	return arquivo;
+	}
+	
+	public void imprimirBm(File arquivo, BmDTO dto) {
+	
+		try {
+		FileInputStream fisArquivo = new FileInputStream(arquivo);	
+			XSSFWorkbook bmExcel = new XSSFWorkbook(fisArquivo);
+
+			XSSFSheet bm_plan = bmExcel.getSheetAt(0);
+			
+			XSSFRow linha;
+			XSSFCell celula;
+			
+//preencher cabeçalho			
+			
+//Numeração			
+			bm_plan = this.preencherNumeracao(bm_plan, dto);
+
+//Fornecedor
+			bm_plan = this.preencherFornecedor(bm_plan, dto);
+
+//Contratante			
+			bm_plan = this.preencherContratante(bm_plan, dto);
+//==========================================================
+			
+			List<Bm_ItemDTO> itens = dto.bmItensDto().stream()
+			.map(r-> r).collect(Collectors.toList());
+		
+			final int linhasPorPagina =20;
+			int qtdePaginas = 1;
+			
+			if(itens.size()>linhasPorPagina) {
+				qtdePaginas = (int) Math.round((double)itens.size()/linhasPorPagina);
+				for(int i = 1; i<=qtdePaginas; i++) {
+					if(i>1) {
+				bmExcel.cloneSheet(0,"BmPage_"+i);
+				}
+				}
+			}
+			
+			int y = 10;
+			int z = 0;
+			
+			linha = bm_plan.getRow(1);
+			celula = linha.getCell(27);
+			celula.setCellValue((z+1)+"/"+qtdePaginas);
+			
+			
+			for(int i=0; i<itens.size(); i++) {
+			//itens do BM
+				if(i>=linhasPorPagina & i%linhasPorPagina==0) {
+					y = 10;
+					z = z+1;
+
+					linha = bm_plan.getRow(30);
+					celula = linha.getCell(0);
+					celula.setCellValue("Subtotal");
+
+					linha = bm_plan.getRow(30);
+					celula = linha.getCell(13);
+					celula.removeFormula();
+					celula.setCellValue(this.vtotal);
+					
+					
+					
+					bm_plan = bmExcel.getSheetAt(z);
+					
+					linha = bm_plan.getRow(1);
+					celula = linha.getCell(27);
+					celula.setCellValue((z+1)+"/"+qtdePaginas);
+				}
+			
+			linha = bm_plan.getRow(y);
+			//Item
+			celula = linha.getCell(0);
+			celula.setCellValue(i+1);
+			//Descrição produto
+			celula = linha.getCell(2);
+			celula.setCellValue(dto.bmItensDto().get(i).ptldto().produtodto().descricaoDto()
+					+" "+dto.bmItensDto().get(i).ptldto().produtodto().marcaDto()
+					+" "+dto.bmItensDto().get(i).ptldto().produtodto().modeloDto()
+					+" "+dto.bmItensDto().get(i).ptldto().patfordto()
+					);
+			//unidade do produto
+			celula = linha.getCell(10);
+			celula.setCellValue("D");
+			//quantidade do Produto
+			celula = linha.getCell(11);
+			celula.setCellValue(itens.get(i).qtdeDiadto());
+			//Valor Unitário
+			celula = linha.getCell(12);
+			celula.setCellValue(dto.bmItensDto().get(i).vLocDiariadto());
+			//valor Total
+			celula = linha.getCell(13);
+			celula.setCellValue(dto.bmItensDto().get(i).vLocTotaldto());
+			
+			this.vtotal = this.vtotal + dto.bmItensDto().get(i).vLocTotaldto();
+			y = y+1;
+			
+			}	
+			
+			linha = bm_plan.getRow(30);
+			celula = linha.getCell(13);
+			celula.removeFormula();
+			celula.setCellValue(this.vtotal);
+			
+// recalcula a planilha, atualizando todas as formulas com os novos valores inseridos.
+            XSSFFormulaEvaluator evaluator = bmExcel.getCreationHelper().createFormulaEvaluator();
+            evaluator.clearAllCachedResultValues();
+            evaluator.evaluateAll();
+			
+			fisArquivo.close();
+
+			FileOutputStream outFile = new FileOutputStream(
+					new File("C:\\BM\\Bm"+dto.forndto().denosocial()+"_"+dto.idDto()+".xlsx"));
+			
+			//bmExcel.getSheetAt(0).protectSheet("Waldyr");
+			bmExcel.write(outFile);
+            outFile.close();	
+			this.vtotal = 0.00;
+			bmExcel.close();  //pode dar erro aqui
+	} catch (Exception e) {
+		// TODO: handle exception
+	}
+	
+	
+}
+	
+	private XSSFSheet preencherNumeracao(XSSFSheet bm_plan, BmDTO dto ) {
+		
+		XSSFRow linha; 
+		XSSFCell celula;
+		
+		linha = bm_plan.getRow(0);
+		celula = linha.getCell(23);
+		celula.setCellValue(dto.numeroBmdto());
+
+		linha = bm_plan.getRow(1);
+		celula = linha.getCell(23);
+		celula.setCellValue(dto.osdto().codosdto());
+
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+		linha = bm_plan.getRow(2);
+		celula = linha.getCell(24);
+		celula.setCellValue(LocalDate.now().format(dtf));
+
+		linha = bm_plan.getRow(4);
+		celula = linha.getCell(22);
+		celula.setCellValue(dto.pmdto().codperdto());
+
+		linha = bm_plan.getRow(6);
+		celula = linha.getCell(22);
+		celula.setCellValue(dto.pmdto().datainicialdto().format(dtf)+" A "+dto.pmdto().datafinaldto().format(dtf));			
+	
+		return bm_plan;
+	} 
+	
+	private XSSFSheet preencherFornecedor(XSSFSheet bm_plan, BmDTO dto) {
+		
+		XSSFRow linha; 
+		XSSFCell celula;
+		
+		//Razão Social
+		linha = bm_plan.getRow(4);
+		celula = linha.getCell(5);
+		celula.setCellValue(dto.forndto().razaosocial());
+
+		//Cnpj
+		linha = bm_plan.getRow(4);
+		celula = linha.getCell(10);
+		celula.setCellValue(dto.forndto().cnpj());
+
+		///Endereço Fornecedor
+		linha = bm_plan.getRow(5);
+		celula = linha.getCell(5);
+		celula.setCellValue(dto.forndto().municipio()+" - "+dto.forndto().uf());			
+
+		///Contato Fornecedor
+		linha = bm_plan.getRow(6);
+		celula = linha.getCell(5);
+		celula.setCellValue(dto.forndto().contato());			
+
+		///Email Fornecedor
+		linha = bm_plan.getRow(7);
+		celula = linha.getCell(5);
+		celula.setCellValue(dto.forndto().email());			
+
+		///Telefone Fornecedor
+		linha = bm_plan.getRow(7);
+		celula = linha.getCell(10);
+		celula.setCellValue(dto.forndto().telefone());			
+		
+		
+		return bm_plan;
+	}
+	
+	private XSSFSheet preencherContratante(XSSFSheet bm_plan, BmDTO dto) {
+		XSSFRow linha; 
+		XSSFCell celula;
+
+		//Razão Contratante
+		linha = bm_plan.getRow(4);
+		celula = linha.getCell(15);
+		celula.setCellValue("MKS Soluções Integradas S/A");			
+
+		//CNPJ Contratante
+		linha = bm_plan.getRow(4);
+		celula = linha.getCell(20);
+		celula.setCellValue("00.183.256/0005-05");			
+
+		//Endereço Contratante
+		linha = bm_plan.getRow(5);
+		celula = linha.getCell(15);
+		celula.setCellValue("São Luis - Ma");			
+
+		//Contato Contratante
+		linha = bm_plan.getRow(6);
+		celula = linha.getCell(15);
+		celula.setCellValue("Comercial - Suprimentos");			
+
+		//E-mail Contratante
+		linha = bm_plan.getRow(7);
+		celula = linha.getCell(15);
+		celula.setCellValue("contratos@mkssolucoes.com.br");			
+
+		//Telefone Contratante
+		linha = bm_plan.getRow(7);
+		celula = linha.getCell(20);
+		celula.setCellValue("(71) 97777-6666");	
+		
+		return bm_plan;
+		
+		
+	}
+}

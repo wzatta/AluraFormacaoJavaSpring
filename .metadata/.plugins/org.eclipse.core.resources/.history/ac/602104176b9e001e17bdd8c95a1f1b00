@@ -1,0 +1,30 @@
+package com.cilazata.repositories;
+
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.cilazatta.entity.ProdutoTabelaLocado;
+
+@Repository
+public interface PageProdutoTableLocadoRepository extends 
+	PagingAndSortingRepository<ProdutoTabelaLocado, Long>{
+	
+		Page<ProdutoTabelaLocado> findAllBypatMks(String patMks, Pageable pageable);
+		
+		@Query("FROM ProdutoTabelaLocado c "+
+				   "WHERE LOWER(c.fornecedor.razaosocial) like %:searchTerm%" +
+				   " OR LOWER(c.prod.descricao) like %:searchTerm%"+
+				   " OR LOWER(c.prod.marca) like %:searchTerm%"+
+				   " OR LOWER(c.prod.modelo) like %:searchTerm%"+
+				   " OR LOWER(c.os.codos) like %:searchTerm%")
+			Page<ProdutoTabelaLocado> searchP(
+					@Param("searchTerm") String searchTerm, 
+					Pageable pageable);
+
+				
+}

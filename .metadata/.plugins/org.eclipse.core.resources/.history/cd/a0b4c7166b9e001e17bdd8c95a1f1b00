@@ -1,0 +1,130 @@
+package com.cilazata.entity;
+
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.cilazatta.dto.BmDTO;
+import com.cilazatta.dto.Bm_DTO;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+//import lombok.ToString;
+
+@NoArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
+@Table(name="bm", uniqueConstraints = {@UniqueConstraint(name="unique_Forn_os_periodo", 
+columnNames = {"fornid", "osid", "permedid"})})
+public class Bm implements Serializable{
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@EqualsAndHashCode.Include
+	private Long id;
+	
+	@Column(name = "numerobm", unique = true)
+	private String numeroBm;
+
+	@ManyToOne
+	@JoinColumn(name = "fornid", nullable = false, foreignKey = @ForeignKey(name = "fkidforn"))
+	private Fornecedor fornecedor;
+	
+	@ManyToOne
+	@JoinColumn(name = "osid", nullable = false, foreignKey = @ForeignKey(name = "fkidos"))
+	private Os os;
+	
+	@ManyToOne
+	@JoinColumn(name = "permedid", nullable = false, foreignKey = @ForeignKey(name = "fkidpermed"))
+	private PeriodoMedicao permed;
+	
+	@Column(name = "vtotalbm")
+	private Double vTotalBm;
+	
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true , mappedBy = "bm")
+	private List<BmItem> bmItens = new ArrayList<>(); 
+
+//===========================
+	public Bm(Long id,String numeroBm ,Fornecedor fornecedor, Os os, 
+			Double vTotalBm, PeriodoMedicao permed, List<BmItem> bmItens) {
+		this.id = id;
+		this.numeroBm = numeroBm;
+		this.fornecedor = fornecedor;
+		this.os = os;
+		this.permed = permed;
+		this.vTotalBm = vTotalBm;
+		this.bmItens = bmItens;
+	}
+	
+	public Bm(BmDTO bmDTO) {
+		this.id = bmDTO.idDto();
+		this.numeroBm = bmDTO.numeroBmdto();
+		this.fornecedor = bmDTO.forndto().convert();
+		this.os = bmDTO.osdto().convert();
+		this.permed = bmDTO.pmdto().convert();
+		this.vTotalBm = bmDTO.vTotalBmdto();
+	}
+	
+	public Bm_DTO convert() {
+		return new Bm_DTO(this.id,this.numeroBm,this.os.convert(), this.fornecedor.convert(), 
+				this.permed.convert(), this.vTotalBm);
+	}
+
+	//==========
+	
+	public void setBmItem(List<BmItem> bmItens) {
+		if(bmItens == null) {
+			throw new IllegalArgumentException("Itens do BM não pode ser null");
+		}
+		this.bmItens.clear();
+		this.bmItens.addAll(bmItens);
+	}
+	
+	public void addBmItem(BmItem bmItem) {
+		if(bmItem == null) {
+			throw new IllegalArgumentException("Itens do BM não pode ser null");
+		}
+		bmItem.setBm(this);
+		this.bmItens.add(bmItem);
+	}
+	
+	public void removeItem(BmItem bmItem) {
+		if(bmItem == null) {
+			throw new IllegalArgumentException("Itens do BM não pode ser null");
+		}
+		bmItem.setBm(null);
+		this.bmItens.remove(bmItem);
+	}
+	
+	public void addNumeroBm(int ano) {
+		this.setNumeroBm(
+				"BM - "+this.id+"/"+ano
+				);
+	}
+	
+	public void calcValorBm() {
+		this.setVTotalBm(
+			this.getBmItens().stream()
+			.mapToDouble(vt-> vt.getVLocTotal()).sum());
+	}
+
+}

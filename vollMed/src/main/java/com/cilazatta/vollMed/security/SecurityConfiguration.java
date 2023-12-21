@@ -23,15 +23,15 @@ public class SecurityConfiguration {
 	
 	private final SecurityFilter securityFilter;
 	
-	
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http.csrf(csrf-> csrf.disable())
-				.authorizeHttpRequests(authz-> authz
+		/*		.authorizeHttpRequests(authz-> authz
 						.requestMatchers(HttpMethod.POST, "/login/**")
+						.requestMatchers()
 						.permitAll()
 						.anyRequest()
-						.authenticated())
+						.authenticated()) */
 				.sessionManagement(sm-> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
 				.build();

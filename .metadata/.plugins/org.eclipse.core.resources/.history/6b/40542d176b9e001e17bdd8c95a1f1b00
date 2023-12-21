@@ -1,0 +1,80 @@
+package com.cilazata.resources;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.cilazatta.dto.view.Vw_Grafo_Bar_serie_DTO;
+import com.cilazatta.dto.view.Vw_Grapho_Bar_DTO;
+import com.cilazatta.dto.view.Vw_Grapho_Bar_Os_DTO;
+import com.cilazatta.entity.view.Vw_Loc_Mensal;
+import com.cilazatta.services.Vw_Loc_Mensal_Service;
+
+@RestController
+@RequestMapping(value ="api/v1/viewlocmensal")
+public class VwLocMensalResource {
+	
+	@Autowired
+	private Vw_Loc_Mensal_Service service;
+	
+	@GetMapping
+	public ResponseEntity<List<Vw_Loc_Mensal>> findAll(){
+		List<Vw_Loc_Mensal> listLoc = service.findAll();
+		return ResponseEntity.ok().body(listLoc);
+	}
+	
+	@GetMapping(value="/{ano}")
+	public ResponseEntity<List<Vw_Loc_Mensal>> findAllByAno(@PathVariable Long ano ){
+		List<Vw_Loc_Mensal> listLoc = service.findAllYear(ano);
+		return ResponseEntity.ok().body(listLoc);
+	}
+	
+	@GetMapping(value="/deno")
+	public ResponseEntity<List<String>> findAllDeno(){
+		List<String> listDeno = service.findAllDeno();
+		return ResponseEntity.ok().body(listDeno);
+	}
+
+	@GetMapping(value="/year")
+	public ResponseEntity<List<Integer>> findAllYear(){
+		List<Integer> listYear = service.findAllYear();
+		return ResponseEntity.ok().body(listYear);
+	}
+	
+//=============================================================
+	@GetMapping(value="/graphobar/vm/{ano}")
+	public ResponseEntity<List<Vw_Grafo_Bar_serie_DTO>> findDadosGraphoBarVm(@PathVariable Long ano){
+		List<Vw_Grafo_Bar_serie_DTO> listGraphoBar = service.findDadosGraphoBarVm(ano);
+		return ResponseEntity.ok().body(listGraphoBar);
+	}
+//============================================================	
+	@GetMapping(value="/graphobar/{ano}")
+	public ResponseEntity<List<Vw_Grapho_Bar_DTO>> findDadosGraphoBar(@PathVariable Long ano){
+		List<Vw_Grapho_Bar_DTO> listGraphoBar = service.findDadosGraphoBar(ano);
+		return ResponseEntity.ok().body(listGraphoBar);
+	}
+
+	@GetMapping(value="/graphobaros/{ano}")
+	public ResponseEntity<List<Vw_Grapho_Bar_Os_DTO>> findDadosGraphoBarOs(@PathVariable Long ano){
+		List<Vw_Grapho_Bar_Os_DTO> listGraphoBar = service.findDadosGraphoBarOs(ano);
+		return ResponseEntity.ok().body(listGraphoBar);
+	}
+	
+	@GetMapping(value="/graphobar/{deno}/year/{ano}")
+	public ResponseEntity<List<Vw_Grapho_Bar_DTO>> findDadosGraphoBarFor(@PathVariable String deno, @PathVariable Long ano){
+		List<Vw_Grapho_Bar_DTO> listGraphoBar = service.findDadosGraphoBar(deno, ano);
+		return ResponseEntity.ok().body(listGraphoBar);
+	}
+
+	@GetMapping(value="/graphobarosfor/{deno}/year/{ano}")
+	public ResponseEntity<List<Vw_Grapho_Bar_Os_DTO>> findDadosGraphoBarOsFor(@PathVariable String deno, @PathVariable Long ano){
+		List<Vw_Grapho_Bar_Os_DTO> listGraphoBar = service.findDadosGraphoBarOs(deno, ano);
+		return ResponseEntity.ok().body(listGraphoBar);
+	}
+
+}

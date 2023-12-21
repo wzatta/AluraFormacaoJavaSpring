@@ -1,0 +1,60 @@
+package com.cilazata.resources;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.cilazatta.dto.PeriodoMedicaoDTO;
+import com.cilazatta.services.PeriodoMedicaoService;
+
+@RestController
+@RequestMapping(value="api/v1/PeriodoMedicao")
+public class PeriodoMedicaoResource {
+
+	@Autowired
+	private PeriodoMedicaoService service;
+
+	@PostMapping
+	public ResponseEntity<PeriodoMedicaoDTO> insertObj(PeriodoMedicaoDTO dto) {
+		dto = service.insertObj(dto);
+		return ResponseEntity.created(null).body(dto);
+	}
+
+	@GetMapping
+	public ResponseEntity<List<PeriodoMedicaoDTO>> findAll() {
+		return ResponseEntity.ok().body(service.findAll());
+	}
+
+	@GetMapping(value = "/{id}")
+	public ResponseEntity<PeriodoMedicaoDTO> findById(@PathVariable Long id) {
+		PeriodoMedicaoDTO dto = service.findById(id);
+		return ResponseEntity.ok().body(dto);
+	}
+
+	@PutMapping(value = "/{id}")
+	public ResponseEntity<PeriodoMedicaoDTO> update(@PathVariable Long id, @RequestBody PeriodoMedicaoDTO dto) {
+		dto = service.update(id, dto);
+		return ResponseEntity.ok().body(dto);
+	}
+
+	@DeleteMapping(value = "/{id}")
+	public ResponseEntity<Void> delete(@PathVariable Long id) {
+		Boolean isDeletado = service.deleteById(id);
+		if (isDeletado) {
+			return ResponseEntity.noContent().<Void>build();
+		} else {
+			return ResponseEntity.notFound().build();
+		}
+	}
+	
+	
+}

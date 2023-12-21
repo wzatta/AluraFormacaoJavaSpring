@@ -1,0 +1,131 @@
+package com.cilazata.entity;
+
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.cilazatta.dto.NotaFiscalDTO;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString
+@Getter
+@Setter
+@NoArgsConstructor
+@Entity
+@Table(name = "nota_fiscal", uniqueConstraints = {@UniqueConstraint(name = "uniqueforSerienf", 
+columnNames = {"forn_id","serie","numeronf"})})
+public class NotaFiscal implements Serializable  {
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@EqualsAndHashCode.Include
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	
+	@ManyToOne
+	@JoinColumn(name = "forn_id", nullable = false, foreignKey = @ForeignKey(name = "fk_idforn"))
+	private Fornecedor fornecedor;
+	
+	@ManyToOne
+	private Os os;
+	
+	@Column(name = "serie", length = 4)
+	private String serie;
+	
+	@Column(name = "numeronf", length = 12)
+	private String numeronf;
+	
+	@Column(name = "emissao")
+	private LocalDate emissao;
+	
+	@Column(name = "valornf")
+	private Double valornf;
+
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true ,mappedBy = "notaFiscal")
+	private List<NotaFiscalItem> nfItens = new ArrayList<>();
+	
+		public NotaFiscal(Long id, Fornecedor fornecedor, Os os, String serie, String numeronf, LocalDate emissao,
+			Double valornf, List<NotaFiscalItem> nfItens) {
+		this.id = id;
+		this.fornecedor = fornecedor;
+		this.os = os;
+		this.serie = serie;
+		this.numeronf = numeronf;
+		this.emissao = emissao;
+		this.valornf = valornf;
+		this.nfItens = nfItens;
+	}
+	
+	public NotaFiscal(NotaFiscalDTO dto) {
+		this.id = dto.iddto();
+		this.fornecedor = dto.fordto().convert();
+		this.os = dto.osdto().convert();
+		this.serie = dto.seriedto();
+		this.numeronf = dto.numeronfdto();
+		this.emissao = LocalDate.parse(dto.emissaodto());
+		this.valornf = Double.parseDouble(dto.valornfdto());
+		//this.nfItens = dto.nfitensdto().stream()
+			//	.map(itemdto -> itemdto.convert())
+				//.collect(Collectors.toList());
+	}
+	
+	public NotaFiscalDTO convert() {
+		return new NotaFiscalDTO(
+				this.id, 
+				this.fornecedor.convert(), 
+				this.os.convert(), 
+				this.emissao.toString(), 
+				this.serie, 
+				this.numeronf,
+				this.valornf.toString());
+				//this.getNfItens().stream().map(item-> item.convert()).collect(Collectors.toList()));
+	}
+
+
+	public void setNfItens(List<NotaFiscalItem> itens) {
+		if(itens == null) {
+			throw new IllegalArgumentException("Itens da Nota Fiscal não pode ser null");
+		}
+		this.nfItens.clear();
+		this.nfItens.addAll(itens);
+	}
+	
+	public void addItem(NotaFiscalItem item) {
+		if(item == null) {
+			throw new IllegalArgumentException("Itens da Nota Fiscal não pode ser null");
+		}
+		item.setNotaFiscal(this);
+		this.nfItens.add(item);
+	}
+	
+	public void removeItem(NotaFiscalItem item) {
+		if(item == null) {
+			throw new IllegalArgumentException("Itens da Nota Fiscal não pode ser null");
+		}
+		item.setNotaFiscal(null);
+		this.nfItens.remove(item);
+	}
+
+
+}
+

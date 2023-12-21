@@ -1,0 +1,151 @@
+package com.cilazata.entity;
+
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.springframework.validation.annotation.Validated;
+
+import com.cilazatta.dto.ProdutoTabelaLocado1DTO;
+import com.cilazatta.dto.ProdutoTabelaLocadoDTO;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.validation.constraints.PositiveOrZero;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+//import lombok.ToString;
+
+@Validated
+@Getter
+@Setter
+@EqualsAndHashCode( onlyExplicitlyIncluded = true)
+@NoArgsConstructor
+@Entity
+public class ProdutoTabelaLocado implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	
+	@ManyToOne
+	private NotaFiscal nf;
+	
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "fornecid", nullable = false)
+	private Fornecedor fornecedor;
+	
+	@ManyToOne
+	private Produto prod;
+	
+	@ManyToOne
+	private Os os;
+	
+	private String serie;
+	
+	private String patMks;
+	
+	private String patFor;
+	
+	@Column(name = "datalocinicial")
+	private LocalDate dataLocInicial;
+	
+	@PositiveOrZero
+	@Column(name = "qtdeloc")
+	private Integer qtdeLoc;
+	
+	@Column(name = "datalocfinal")
+	private LocalDate dataLocFinal;
+	
+	@PositiveOrZero
+	@Column(name = "qtdedev")
+	private Integer qtdeDev = 0;
+	
+	@PositiveOrZero
+	@Column(name = "qtdesaldo")
+	private Integer qtdeSaldo = 0;
+	
+	@PositiveOrZero
+	@Column(name = "vlocdiaria")
+	private Double vLocDiaria;
+	
+	@PositiveOrZero
+	@Column(name = "vlocmensal")
+	private Double vLocMensal;
+	
+	@OneToMany(mappedBy = "id.eqp")
+	private Set<BoletimMedicaoItem> bmItens = new HashSet<>();
+
+	
+	public Set<BoletimMedicao> getBmItens() {
+		Set<BoletimMedicao> set = new HashSet<>();
+		for(BoletimMedicaoItem x : bmItens) {
+			set.add(x.getId().getBm());
+		}
+		return set;
+	}
+
+
+	public ProdutoTabelaLocado(Long id, NotaFiscal nf, Fornecedor fornecedor, Produto prod, Os os, String serie, String patMks, String patFor,
+			LocalDate dataLocInicial, Integer qtdeLoc,Integer qtdeSaldo ,Double vlocdiaria, Double vlocmensal) {
+		this.id = id;
+		this.nf = nf;
+		this.fornecedor = fornecedor;
+		this.prod = prod;
+		this.os = os;
+		this.serie = serie;
+		this.patMks = patMks;
+		this.patFor = patFor;
+		this.dataLocInicial = dataLocInicial;
+		this.qtdeLoc = qtdeLoc;
+		this.qtdeSaldo = qtdeSaldo;
+		this.vLocDiaria = vlocdiaria;
+		this.vLocMensal = vlocmensal;
+	}
+
+
+	public ProdutoTabelaLocado(ProdutoTabelaLocadoDTO dto) {
+		this.id = dto.iddto();
+		this.nf = dto.nfdto().convert();
+		this.fornecedor = dto.fornecedordto().convert();
+		this.prod = dto.produtodto().convert();
+		this.os = dto.osdto().convert();
+		this.serie = dto.seriedto();
+		this.patMks = dto.patdto();
+		this.patFor = dto.patfordto();
+		this.dataLocInicial = dto.dataInicial();
+		this.qtdeLoc = Integer.parseInt(dto.qtdelocado());
+		this.vLocDiaria = Double.parseDouble(dto.vLocDiaria());
+		this.vLocMensal = Double.parseDouble(dto.vLocMensal());
+	}
+	public ProdutoTabelaLocado(ProdutoTabelaLocado1DTO dto) {
+		this.id = dto.iddto();
+		this.fornecedor = dto.fornecedordto().convert();
+		this.prod = dto.prod().convert();
+		this.dataLocInicial = dto.dataInicial();
+		this.dataLocFinal= dto.dataFinal();
+		this.qtdeLoc = Integer.parseInt(dto.qtdelocado());
+		this.qtdeDev = Integer.parseInt(dto.qtdedev());
+		this.vLocDiaria = Double.parseDouble(dto.vLocDiaria());
+		this.vLocMensal = Double.parseDouble(dto.vLocMensal());
+	}
+	
+	public ProdutoTabelaLocadoDTO convert() {
+		return new ProdutoTabelaLocadoDTO(this.id, this.nf.convert(), this.fornecedor.convert(),
+				this.prod.convert(), this.os.convert(), this.serie, this.patMks, this.patFor,this.dataLocInicial,
+				this.qtdeLoc.toString(), this.vLocDiaria.toString(), this.vLocMensal.toString());
+	}
+
+}

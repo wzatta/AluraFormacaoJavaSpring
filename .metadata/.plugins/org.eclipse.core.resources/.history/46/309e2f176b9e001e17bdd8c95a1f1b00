@@ -1,0 +1,91 @@
+package com.cilazata.resources;
+
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.cilazatta.dto.BmDTO;
+import com.cilazatta.dto.BmRequestFornecDTO;
+import com.cilazatta.dto.BmRequestIdDTO;
+import com.cilazatta.dto.FornecedorDTO;
+import com.cilazatta.dto.PeriodoMedicaoDTO;
+import com.cilazatta.services.BmService;
+
+@RestController
+@RequestMapping(value = "api/v1/bm")
+public class BmResource {
+	
+	private final BmService bmServ;
+	
+	
+	public BmResource(BmService bmServ) {
+		this.bmServ = bmServ;
+	}
+
+	@PostMapping
+	public ResponseEntity<List<BmDTO>> geraBmPorFornecedor(@RequestBody BmRequestFornecDTO bmreq) {
+	List<BmDTO> bmdto =this.bmServ.createBmFornec(bmreq);
+	return ResponseEntity.ok().body(bmdto);
+	}
+
+	@GetMapping
+	public ResponseEntity<List<BmDTO>> findAll(){
+		List<BmDTO> bmdto = this.bmServ.findAll();
+		return ResponseEntity.ok().body(bmdto);
+	}
+
+	@GetMapping(value = "/fornecedor")
+	public ResponseEntity<List<FornecedorDTO>> findForBm(){
+			List<FornecedorDTO> listForBmDto = this.bmServ.findFornBm();
+			return ResponseEntity.ok().body(listForBmDto);
+	}
+
+	@GetMapping(value = "/produtolocado")
+	public ResponseEntity<List<FornecedorDTO>> findForProdutoLocado(){
+		List<FornecedorDTO> listForBmDto = this.bmServ.findFornecedorProdutoLocado();
+		return ResponseEntity.ok().body(listForBmDto);
+	}
+
+	@PostMapping(value = "/produtolocado")
+	public ResponseEntity<List<PeriodoMedicaoDTO>> findPeriodoLocAberto(@RequestBody FornecedorDTO dto){
+		List<PeriodoMedicaoDTO> listPeriodo = this.bmServ.finPeriodoAbertoParaGerarBm(dto);
+		return ResponseEntity.ok().body(listPeriodo);
+	}
+	
+	@PostMapping(value = "/bmfor")
+	public ResponseEntity<List<BmDTO>> findBmPorFornecedor(@RequestBody FornecedorDTO dto){
+		List<BmDTO> bmdto = this.bmServ.findBmPorFornecedor(dto);
+		return ResponseEntity.ok().body(bmdto);
+	}
+
+	@PostMapping(value = "/bmperiodo")
+	public ResponseEntity<List<PeriodoMedicaoDTO>> findPeriodoPorFornecedor(@RequestBody FornecedorDTO dto){
+		List<PeriodoMedicaoDTO> bmdto = this.bmServ.findPeriodoPorFornecedor(dto);
+		return ResponseEntity.ok().body(bmdto);
+	}
+
+	@PostMapping(value = "/bmforper")
+	public ResponseEntity<List<BmDTO>> findBmFornPeriodo(@RequestBody BmRequestFornecDTO record){
+		List<BmDTO> bmdto = this.bmServ.findBmFornPeriodo(record.fornecedordto(), record.periodoMedicaodto());
+		return ResponseEntity.ok().body(bmdto);
+	}
+
+	@PostMapping(value = "/bmprint")
+	public ResponseEntity<Void> geraBmExcel(@RequestBody BmRequestIdDTO objdto){
+		this.bmServ.imprimirBm(Long.parseLong(objdto.iddto()));
+		return ResponseEntity.noContent().build();
+	}
+
+	@PostMapping(value = "/bmprint2")
+	public ResponseEntity<Void> geraBmExcel2(@RequestBody BmRequestIdDTO objdto){
+		this.bmServ.imprimirBm2(Long.parseLong(objdto.iddto()));
+		return ResponseEntity.noContent().build();
+	}
+	
+
+}

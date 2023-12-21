@@ -1,0 +1,115 @@
+package com.cilazata.services;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+
+import com.cilazatta.dto.NotaFiscalItemDTO;
+import com.cilazatta.entity.NotaFiscalItem;
+import com.cilazatta.entity.ProdutoTabelaLocado;
+import com.cilazatta.repositories.NotaFiscalItemRepository;
+import com.cilazatta.repositories.ProdutoTabelaLocadoRepository;
+import com.cilazatta.services.exeptions.FieldDataIntegrityViolationException;
+import com.cilazatta.services.exeptions.GenericsExceptionError;
+import com.cilazatta.services.exeptions.ObjectNotFoundException;
+
+@Service
+public class NotaFiscalItemService {
+
+	@Autowired
+	private NotaFiscalItemRepository objRepo;
+	
+	@Autowired
+	private ProdutoTabelaLocadoRepository repo;
+	
+	public NotaFiscalItemDTO insertObj(NotaFiscalItemDTO dto) {
+	try {
+		List<NotaFiscalItem> loc = new ArrayList<>();
+		NotaFiscalItem obj = dto.convert();
+		obj = objRepo.save(obj);
+		loc.add(obj);
+		this.geraTabelaLocado(loc);
+		return obj.convert();	
+	} catch (DataIntegrityViolationException e) {
+		throw new FieldDataIntegrityViolationException("Registro ja Cadastrado!");
+	} 
+	catch (Exception e) {
+		throw new GenericsExceptionError(e.getMessage());
+	}
+	
+	}
+
+	public List<NotaFiscalItemDTO> insertObj(List<NotaFiscalItemDTO> dtos) {
+		try {
+			List<NotaFiscalItem> objetos = dtos.stream().map(x-> x.convert()).collect(Collectors.toList());
+			objetos = objRepo.saveAll(objetos);
+			this.geraTabelaLocado(objetos);
+			return objetos.stream().map(x-> x.convert()).collect(Collectors.toList());	
+		} catch (DataIntegrityViolationException e) {
+			throw new FieldDataIntegrityViolationException("Registro ja Cadastrado!");
+		} 
+		catch (Exception e) {
+			throw new GenericsExceptionError(e.getMessage());
+		}
+		
+	}
+	
+	public List<NotaFiscalItemDTO> findAll(){
+		List<NotaFiscalItem> listObj = objRepo.findAll();
+		List<NotaFiscalItemDTO> objDto = listObj.stream()
+				.map(r -> r.convert())
+				.collect(Collectors.toList());
+		return objDto;
+	}
+	
+	public NotaFiscalItemDTO findById(Long id) {
+		Optional<NotaFiscalItem> optionalObj = objRepo.findById(id);
+		NotaFiscalItem obj = optionalObj.orElseThrow(()-> new ObjectNotFoundException("Registro Não Encontrado"));
+		return obj.convert();
+	}
+	
+	public NotaFiscalItemDTO update(Long id, NotaFiscalItemDTO dto) {
+		NotaFiscalItem obj = objRepo.getReferenceById(id);
+		obj = updateData(obj, dto);
+		obj = objRepo.save(obj);
+		return obj.convert();
+	}
+	
+	private NotaFiscalItem updateData(NotaFiscalItem obj, NotaFiscalItemDTO dto) {
+		obj = dto.convert();
+		return obj;
+	}
+	
+	public Boolean deleteById(Long id) {
+		return objRepo.findById(id).map(recordFound -> {
+			objRepo.deleteById(id);
+			return true;
+		}).orElse(false);
+	}
+	
+
+	private void geraTabelaLocado(List<NotaFiscalItem> itens) {
+		
+		List<ProdutoTabelaLocado> locados = new ArrayList<>();
+	
+			for(NotaFiscalItem rec : itens) {
+				
+				for(int w=1; w<=rec.getQtde(); w++) {
+				locados.add(new ProdutoTabelaLocado(null, rec.getNotaFiscal(),rec.getNotaFiscal().getFornecedor() ,rec.getProduto(),
+						rec.getNotaFiscal().getOs(), null, null, null, rec.getNotaFiscal().getEmissao(), 1,1,
+						rec.getVLocDiaria(),rec.getVLocMensal()));
+				}
+				
+				repo.saveAll(locados);
+				
+			}
+		
+	}
+	
+	
+}

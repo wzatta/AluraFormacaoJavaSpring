@@ -1,0 +1,25 @@
+package com.cilazata.services;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import com.cilazatta.entity.ProdutoTabelaLocado;
+import com.cilazatta.repositories.PageProdutoTableLocadoRepository;
+
+@Service
+public class PageProdutoTableLocadoService {
+
+	
+	private final PageProdutoTableLocadoRepository objRepo;
+
+	public PageProdutoTableLocadoService(PageProdutoTableLocadoRepository objRepo) {
+		this.objRepo = objRepo;
+	}
+	
+	public Page<ProdutoTabelaLocado> findPageAll(Pageable pageable){
+		return objRepo.findAll(pageable);
+	}
+	
+	
+}

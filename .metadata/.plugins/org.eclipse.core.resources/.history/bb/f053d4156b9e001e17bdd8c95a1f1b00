@@ -1,0 +1,14 @@
+package com.cilazata.dto;
+
+import java.time.LocalDate;
+
+import com.cilazatta.entity.PeriodoMedicao;
+
+public record PeriodoMedicaoDTO(Long iddto, String codperdto, LocalDate datainicialdto, 
+		LocalDate datafinaldto) {
+
+	public PeriodoMedicao convert() {
+		return new PeriodoMedicao(this);
+	}
+	
+}

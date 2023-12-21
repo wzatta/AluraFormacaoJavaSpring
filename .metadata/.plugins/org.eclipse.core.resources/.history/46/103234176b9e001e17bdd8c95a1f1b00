@@ -1,0 +1,91 @@
+package com.cilazata.resources;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.cilazatta.dto.FornecedorDTO;
+import com.cilazatta.dto.ProdutoTabelaLocadoDTO;
+import com.cilazatta.entity.Fornecedor;
+import com.cilazatta.entity.ProdutoTabelaLocado;
+import com.cilazatta.services.ProdutoTabelaLocadoService;
+
+@RestController
+@RequestMapping(value="api/v1/produtolocado")
+public class ProdutoTabelaLocadoResource {
+	
+	@Autowired
+	private ProdutoTabelaLocadoService service;
+
+	@PutMapping
+	public ResponseEntity<ProdutoTabelaLocadoDTO> update(@RequestBody ProdutoTabelaLocadoDTO ptlocDto){
+		ProdutoTabelaLocadoDTO ptloc = service.update(ptlocDto.iddto(), ptlocDto);
+		return ResponseEntity.ok().body(ptloc);
+	}
+	
+	@GetMapping(value = "/{id}")
+	public ResponseEntity<ProdutoTabelaLocadoDTO> update(@PathVariable Long id){
+		ProdutoTabelaLocadoDTO ptloc = service.findByid(id);
+		return ResponseEntity.ok().body(ptloc);
+	}
+	
+	
+	
+
+	@GetMapping
+	public ResponseEntity<List<ProdutoTabelaLocadoDTO>> findAll() {
+		List<ProdutoTabelaLocado> dto = service.findAll();
+		List<ProdutoTabelaLocadoDTO> dtos = dto.stream().map(x-> x.convert()).collect(Collectors.toList());
+		return ResponseEntity.ok().body(dtos);
+	}
+/*	
+	@GetMapping
+	public ResponseEntity<List<ProdutoTabelaLocado1DTO>> findAll() {
+		List<ProdutoTabelaLocado> dto = service.findAll();
+		List<ProdutoTabelaLocado1DTO> dtos = dto.stream().map(x-> x.convert1()).collect(Collectors.toList());
+		return ResponseEntity.ok().body(dtos);
+	}
+*/
+	@GetMapping(value = "/fornecedor")
+	public ResponseEntity<List<ProdutoTabelaLocadoDTO>> findByFornecedor(Fornecedor fornecedor) {
+		List<ProdutoTabelaLocado> dto = service.findByFornecedor(fornecedor);
+		List<ProdutoTabelaLocadoDTO> dtos = dto.stream().map(x-> x.convert()).collect(Collectors.toList());
+		return ResponseEntity.ok().body(dtos);
+	}
+
+	@GetMapping(value="/pagina")
+	public ResponseEntity<Page<ProdutoTabelaLocadoDTO>> findPageAll(Pageable pageable){
+		return ResponseEntity.ok().body(service.findPageAll(pageable));
+	}
+
+//=====================================================================================
+	
+	@GetMapping(value = "/pagina/fornecedor")
+	public ResponseEntity<Page<ProdutoTabelaLocadoDTO>> 
+		findByFornecedorPage(@RequestParam String textSearch, 
+			 Pageable pageable) {
+		Page<ProdutoTabelaLocadoDTO> dto = 
+				service.findByFornecedorPage(textSearch, pageable);
+		return ResponseEntity.ok().body(dto);
+	}
+	
+	@GetMapping(value = "/pagina/fornec")
+	public ResponseEntity<List<FornecedorDTO>> findFornLoc(){
+		
+		return ResponseEntity.ok().body(service.findAllForn());
+	}
+
+	
+
+}

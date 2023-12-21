@@ -1,0 +1,19 @@
+package com.cilazata.dto;
+
+import com.cilazatta.entity.BmItem;
+
+public record BmItemDTO(
+		Long iddto,
+		BmDTO bmdto, 
+		ProdutoTabelaLocadoDTO ptldto, 
+		Integer qtdeDiadto, 
+		Double vLocDiariadto,
+		Double vLocTotaldto) {
+	
+	public BmItem convert() {
+		return new BmItem(this);
+	}
+	
+	
+
+}

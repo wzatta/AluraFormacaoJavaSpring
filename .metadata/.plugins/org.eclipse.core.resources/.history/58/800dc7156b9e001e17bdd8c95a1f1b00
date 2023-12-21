@@ -1,0 +1,12 @@
+package com.cilazata.dto;
+
+import com.cilazatta.entity.Os;
+
+public record OsDTO(Long idosdto, String codosdto, String descosdto) {
+
+	public Os convert() {
+		return new Os(this);
+	}
+	
+	
+}

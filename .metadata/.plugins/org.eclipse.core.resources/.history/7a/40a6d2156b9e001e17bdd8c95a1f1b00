@@ -1,0 +1,15 @@
+package com.cilazata.dto;
+
+import java.time.LocalDate;
+
+import com.cilazatta.entity.ProdutoTabelaLocado;
+
+public record ProdutoTabelaLocado1DTO(Long iddto,  FornecedorDTO fornecedordto, ProdutoDTO prod,
+		LocalDate dataInicial, LocalDate dataFinal,
+			String qtdelocado,String qtdedev ,String vLocDiaria, String vLocMensal) {
+	
+		public ProdutoTabelaLocado convert() {
+			return new ProdutoTabelaLocado(this);
+		}
+
+}

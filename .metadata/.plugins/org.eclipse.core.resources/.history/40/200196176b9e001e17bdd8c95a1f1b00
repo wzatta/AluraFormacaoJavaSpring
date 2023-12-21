@@ -1,0 +1,62 @@
+package com.cilazata.services;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.cilazatta.dto.ProdutoDTO;
+import com.cilazatta.entity.Produto;
+import com.cilazatta.repositories.ProdutoRepository;
+import com.cilazatta.services.exeptions.ObjectNotFoundException;
+
+@Service
+public class ProdutoService {
+	
+	@Autowired
+	private ProdutoRepository objRepo;
+	
+	
+	public ProdutoDTO insertObj(ProdutoDTO dto) {
+		Produto forn = dto.convert();
+		forn = objRepo.save(forn);
+		return forn.convert();
+	}
+	
+	public List<ProdutoDTO> findAll(){
+		List<Produto> listObj = objRepo.findAll();
+		List<ProdutoDTO> objDto = listObj.stream()
+				.map(r -> r.convert())
+				.collect(Collectors.toList());
+		return objDto;
+	}
+	
+	public ProdutoDTO findById(Long id) {
+		Optional<Produto> optionalObj = objRepo.findById(id);
+		Produto obj = optionalObj.orElseThrow(()-> new ObjectNotFoundException("Registro Não Encontrado"));
+		return obj.convert();
+	}
+	
+	public ProdutoDTO update(Long id, ProdutoDTO dto) {
+		Produto obj = objRepo.getReferenceById(id);
+		obj = updateData(obj, dto);
+		obj = objRepo.save(obj);
+		return obj.convert();
+	}
+	
+	private Produto updateData(Produto obj, ProdutoDTO dto) {
+		obj = dto.convert();
+		return obj;
+	}
+	
+	public Boolean deleteById(Long id) {
+		return objRepo.findById(id).map(recordFound -> {
+			objRepo.deleteById(id);
+			return true;
+		}).orElse(false);
+	}
+	
+
+}

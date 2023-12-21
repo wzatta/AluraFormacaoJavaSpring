@@ -1,0 +1,20 @@
+package com.cilazata.repositories;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.cilazatta.entity.view.Vw_Loc_Mensal_Vm;
+
+@Repository
+public interface Vw_Loc_Mensal_Vm_ReadOnlyRepository extends ReadOnlyRepository<Vw_Loc_Mensal_Vm, Long> {
+
+		@Query("FROM Vw_Loc_Mensal_Vm c "+
+				"WHERE c.ano = :ano")
+		List<Vw_Loc_Mensal_Vm> searchYear(
+				@Param("ano") Long ano);
+	
+	
+}

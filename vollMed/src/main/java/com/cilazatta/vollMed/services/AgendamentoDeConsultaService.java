@@ -13,17 +13,22 @@ import org.springframework.stereotype.Service;
 
 import com.cilazatta.vollMed.dto.AgendamentoDeConsultaDTO;
 import com.cilazatta.vollMed.dto.ResponseAgendaDoMedicoDTO;
+import com.cilazatta.vollMed.dto.ResponseConsultaDTO;
 import com.cilazatta.vollMed.dto.mapper.AgendamentoDeConsultasMapper;
 import com.cilazatta.vollMed.entities.AgendamentoDeConsultas;
 import com.cilazatta.vollMed.entities.CadastroDeMedicos;
 import com.cilazatta.vollMed.entities.CadastroDePaciente;
 import com.cilazatta.vollMed.enums.HorariosDeConsultas;
+import com.cilazatta.vollMed.exceptions.RecordNotFoundException;
 import com.cilazatta.vollMed.repository.AgendamentoDeConsultaRepository;
 import com.cilazatta.vollMed.repository.CadastroDeMedicosRepository;
 import com.cilazatta.vollMed.repository.CadastroDePacienteRepository;
 
 @Service
 public class AgendamentoDeConsultaService {
+
+	private CadastroDeMedicos medico;
+	private CadastroDePaciente paciente;
 
 	private final CadastroDePacienteRepository pacienteRepo;
 	private final CadastroDeMedicosRepository medicoRepo;
@@ -39,65 +44,103 @@ public class AgendamentoDeConsultaService {
 		this.mapper = mapper;
 	}
 
-	public Boolean validarConsulta(AgendamentoDeConsultaDTO dto) {
-	
-		if (this.verificarHorarioDeAtendimento()) {
-			if (dto.dataDaConsuslta().isEqual(LocalDate.now())) {
-				if (this.verificarHorarioDisponivel(dto.horario())) {
-					return this.agendarConsulta(dto);
-				} else {
-					return false;
-				}
+	public ResponseConsultaDTO validarConsulta(AgendamentoDeConsultaDTO dto) {
 
-			} else {
-				if (dto.dataDaConsuslta().isAfter(LocalDate.now())) {
-					return this.agendarConsulta(dto);
-				}
-				return false;
+		if (this.verificarHorarioDeAtendimento()) {
+			return new ResponseConsultaDTO(false,
+					"Horario de Atendimento de Segunda a Sabado Horário 7:00 as 19:00 horas", null);
+		}
+
+		if (dto.dataDaConsulta().getDayOfWeek() == DayOfWeek.SUNDAY) {
+			return new ResponseConsultaDTO(false, "Domingo não há Atendimento", null);
+		}
+
+//==============================================================		
+		if (!this.medicoRepo.findById(dto.idMedico()).filter(medico -> medico.getIsInativo() == false).isPresent()) {
+			return new ResponseConsultaDTO(false, "Medico Não Cadastrado", null);
+		}
+
+		if (!this.pacienteRepo.findById(dto.idPaciente()).filter(paciente -> paciente.getIsInativo() == false)
+				.isPresent()) {
+			return new ResponseConsultaDTO(false, "Paciente Não Cadastrado", null);
+		}
+
+		this.medico = this.medicoRepo.findById(dto.idMedico()).filter(medico -> medico.getIsInativo() == false).get();
+
+		this.paciente = this.pacienteRepo.findById(dto.idPaciente())
+				.filter(paciente -> paciente.getIsInativo() == false).get();
+
+//==============================================================================		
+
+		if (dto.dataDaConsulta().isEqual(LocalDate.now())) {
+			if (!this.converteEmumEmHoras(dto.horario())) {
+				return new ResponseConsultaDTO(false,
+						"Consulta deverá ser marcada com no minimo 1 hora de Antecedencia", null);
+			}
+		}
+
+		if (dto.dataDaConsulta().isAfter(LocalDate.now())) {
+			if (this.verificarDisponibilidadeDeHorarioDoMedico(medico, dto.dataDaConsulta(), dto.horario())) {
+				return new ResponseConsultaDTO(false, "Horário Indisponivel para este Medico", null);
 			}
 
-		} else {
-			return false;
+			if (this.verificarSeHaAgendamentoParaOpacienteNoMesmoHorario(paciente, dto.dataDaConsulta(),
+					dto.horario())) {
+				return new ResponseConsultaDTO(false, "Paciente Agendado com Outro Medico neste Horário", null);
+			}
 		}
+
+		return this.agendarConsulta(dto);
+
 	}
 
-	private Boolean agendarConsulta(AgendamentoDeConsultaDTO dto) {
+	private Boolean verificarDisponibilidadeDeHorarioDoMedico(CadastroDeMedicos medico, LocalDate dataDaConsulta,
+			HorariosDeConsultas horario) {
+		return this.agendaRepo.findByMedicoAndDataAgendadaAndHoraAgendada(medico, dataDaConsulta, horario).isPresent();
+	}
+
+	private boolean verificarSeHaAgendamentoParaOpacienteNoMesmoHorario(CadastroDePaciente paciente,
+			LocalDate dataDaConsulta, HorariosDeConsultas horario) {
+		return this.agendaRepo.findByPacienteAndDataAgendadaAndHoraAgendada(paciente, dataDaConsulta, horario)
+				.isPresent();
+	}
+
+	private ResponseConsultaDTO agendarConsulta(AgendamentoDeConsultaDTO dto) {
 		AgendamentoDeConsultas agenda = new AgendamentoDeConsultas();
-		CadastroDePaciente paciente = this.pacienteRepo.findById(dto.idPaciente()).get();
-		CadastroDeMedicos medico = this.medicoRepo.findById(dto.idMedico()).get();
 		agenda.setPaciente(paciente);
 		agenda.setMedico(medico);
 		agenda.setDataDoAgendamento(dto.dataDoAgendamento());
-		agenda.setDataAgendada(dto.dataDaConsuslta());
+		agenda.setDataAgendada(dto.dataDaConsulta());
 		agenda.setHoraAgendada(dto.horario());
 		try {
-			this.agendaRepo.save(agenda);
-			return true;
+			agenda = this.agendaRepo.save(agenda);
+			return new ResponseConsultaDTO(true, "Paciente Não Cadastrado", this.mapper.toAgendaDTO(agenda));
 		} catch (Exception e) {
-			return false;
+			throw new RecordNotFoundException(e.getMessage());
 		}
 	}
 //=================================	
 
 	public List<ResponseAgendaDoMedicoDTO> findByMedico(Long id) {
 		CadastroDeMedicos medico = this.medicoRepo.findById(id).get();
-		List<ResponseAgendaDoMedicoDTO> meusCompromissos = this.agendaRepo.findBymedico(medico).stream()
+		List<ResponseAgendaDoMedicoDTO> meusCompromissos = this.agendaRepo.findByMedico(medico).stream()
 				.map(r -> this.mapper.toAgendaDTO(r)).collect(Collectors.toList());
 		return meusCompromissos;
 	}
 
 	public List<ResponseAgendaDoMedicoDTO> findByMedicoAndData(Long id) {
-		CadastroDeMedicos medico = this.medicoRepo.findById(id).get();
+		CadastroDeMedicos medico = this.medicoRepo.findById(id)
+				.orElseThrow(() -> new RecordNotFoundException("Registro Não Encontrado"));
 		List<ResponseAgendaDoMedicoDTO> meusCompromissos = this.agendaRepo
-				.findBymedicoAnddataagendada(medico, LocalDate.now()).stream().map(r -> this.mapper.toAgendaDTO(r))
+				.findByMedicoAndDataAgendadaAfter(medico, LocalDate.now()).stream().map(r -> this.mapper.toAgendaDTO(r))
 				.collect(Collectors.toList());
 		return meusCompromissos;
 	}
 
-	public Boolean verificarHorarioDisponivel(HorariosDeConsultas horaEnum) {
+	public Boolean converteEmumEmHoras(HorariosDeConsultas horaEnum) {
+// Este metodo converte o enum para horas e verifica se esta hora convertida é maior ou igual a 1 hora do horario atual.
 		DateTimeFormatter horarioEnum = DateTimeFormatter.ofPattern("HH:mm");
 		LocalTime horario = LocalTime.parse(horaEnum.getHorario(), horarioEnum);
-		System.out.println("O Horario do enum é " + horario);
 		if (horario.isAfter(LocalTime.now())) {
 			int difHorario = horario.getHour() - LocalTime.now().getHour();
 			if (difHorario >= 1) {
@@ -106,19 +149,19 @@ public class AgendamentoDeConsultaService {
 		}
 		return false;
 	}
-	
+
 //===========================================================================
 	private boolean verificarHorarioDeAtendimento() {
-		if (LocalDateTime.now(ZoneId.systemDefault()).getDayOfWeek() != DayOfWeek.SUNDAY) {
-			
-			if (LocalDateTime.now(ZoneId.systemDefault()).getHour() >= 7 && LocalDateTime.now(ZoneId.systemDefault()).getHour() < 23) {
-				return true;
-			} else {
-				return false;
-			}
-		} else {
+		if (LocalDateTime.now(ZoneId.systemDefault()).getDayOfWeek() == DayOfWeek.SUNDAY) {
 			return false;
 		}
+
+		if (LocalDateTime.now(ZoneId.systemDefault()).getHour() < 7
+				|| LocalDateTime.now(ZoneId.systemDefault()).getHour() > 19) {
+			return false;
+		}
+
+		return true;
 	}
 
 }

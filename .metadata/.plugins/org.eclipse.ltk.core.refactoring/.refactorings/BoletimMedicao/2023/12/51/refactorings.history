@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename package &apos;com.cilazata&apos; to &apos;com.cilazatta&apos;&#x0D;&#x0A;- Original project: &apos;BoletimMedicao&apos;&#x0D;&#x0A;- Original element: &apos;BoletimMedicao/src/main/java/com.cilazata&apos;&#x0D;&#x0A;- Renamed element: &apos;BoletimMedicao/src/main/java/com.cilazatta&apos;&#x0D;&#x0A;- Update references to refactored element&#x0D;&#x0A;- Update fully qualified names in &apos;*&apos; files&#x0D;&#x0A;- Update textual occurrences in comments and strings&#x0D;&#x0A;- Rename subpackages of the package" description="Rename package &apos;com.cilazata&apos;" flags="589830" hierarchical="true" id="org.eclipse.jdt.ui.rename.package" input="/src\/main\/java=/optional=/true=/=/maven.pomderived=/true=/&lt;com.cilazata" name="com.cilazatta" patterns="*" qualified="true" references="true" stamp="1702989329340" textual="false" version="1.0"/>
+</session>

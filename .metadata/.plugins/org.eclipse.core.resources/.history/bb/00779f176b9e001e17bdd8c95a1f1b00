@@ -1,0 +1,87 @@
+package com.cilazata.services;
+
+import java.sql.SQLException;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.hibernate.engine.jdbc.spi.SqlExceptionHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+
+import com.cilazatta.dto.FornecedorDTO;
+import com.cilazatta.entity.Fornecedor;
+import com.cilazatta.repositories.FornecedorRepository;
+import com.cilazatta.services.exeptions.FieldDataIntegrityViolationException;
+import com.cilazatta.services.exeptions.GenericsExceptionError;
+import com.cilazatta.services.exeptions.ObjectNotFoundException;
+
+@Service
+public class FornecedorService {
+	
+	@Autowired
+	private FornecedorRepository forRepo;
+	
+	@Autowired
+	private ProdutoTabelaLocadoService ptlservice;
+	
+	public FornecedorDTO insertObj(FornecedorDTO dto) {
+		Fornecedor forn = dto.convert();
+	try {
+		forn = forRepo.save(forn);
+		return forn.convert();
+	} catch (DataIntegrityViolationException e) {
+		throw new FieldDataIntegrityViolationException("Registro ja Cadastrado!");
+	} 
+	catch (Exception e) {
+		throw new GenericsExceptionError(e.getMessage());
+	}
+		
+		
+		
+	}
+	
+	public List<FornecedorDTO> findAll(){
+		List<Fornecedor> listFor = forRepo.findAll();
+		List<FornecedorDTO> forDto = listFor.stream()
+				.map(r -> r.convert())
+				.sorted(Comparator.comparing(FornecedorDTO::razaosocial))
+				.collect(Collectors.toList());
+		return forDto;
+	}
+	
+	public FornecedorDTO findById(Long id) {
+		Optional<Fornecedor> optionalObj = forRepo.findById(id);
+		Fornecedor forn = optionalObj.orElseThrow(()-> new ObjectNotFoundException("Registro Não Encontrado"));
+		return forn.convert();
+	}
+	
+	public FornecedorDTO update(Long id, FornecedorDTO dto) {
+		Fornecedor obj = forRepo.getReferenceById(id);
+		obj = updateData(obj, dto);
+		obj = forRepo.save(obj);
+		return obj.convert();
+	}
+	
+	private Fornecedor updateData(Fornecedor obj, FornecedorDTO dto) {
+		obj = dto.convert();
+		return obj;
+	}
+	
+	public Boolean deleteById(Long id) {
+		return forRepo.findById(id).map(recordFound -> {
+			if (this.ptlservice.findByFornecedor(recordFound).isEmpty()) {
+				try {
+					forRepo.delete(recordFound);
+					return true;
+				} catch (Exception e) {
+					return false;
+				}
+			} else {
+			return false;}
+		}).orElse(false);
+	}	
+
+}

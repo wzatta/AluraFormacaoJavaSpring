@@ -1,0 +1,20 @@
+
+package com.cilazata.dto;
+
+import com.cilazatta.entity.NotaFiscalItem;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+public record NotaFiscalItemDTO(Long idpkdto,
+		@JsonIgnoreProperties("nfitensdto") NotaFiscalDTO nfdto, 
+		ProdutoDTO proddto,  
+		String qtdedto, 
+		String vunitdto, 
+		String vtotaldto, 
+		String vlocdiariadto, 
+		String vlocmensaldto) {
+	
+	public NotaFiscalItem convert() {
+		return new NotaFiscalItem(this);
+	}
+
+}

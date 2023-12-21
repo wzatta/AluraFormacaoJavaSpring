@@ -1,0 +1,95 @@
+package com.cilazata.entity;
+
+import java.io.Serializable;
+
+import org.hibernate.validator.constraints.Length;
+
+import com.cilazatta.dto.FornecedorDTO;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+@EqualsAndHashCode
+@Entity
+public class Fornecedor implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@EqualsAndHashCode.Include
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	@NotBlank
+	@NotNull
+	@Length(min = 10, max = 50)
+	@Column(name = "razaosocial", length = 50, nullable = false)
+	private String razaosocial;
+
+	@NotBlank
+	@NotNull
+	@Length(min = 5, max = 15)
+	@Column(name = "denosocial", unique = true, length = 15, nullable = false)
+	private String denosocial;
+
+	@NotBlank
+	@NotNull
+	@Column(name = "cnpj", nullable = false, length = 18, unique = true)
+	private String cnpj;
+
+	@Column(name = "cep", length = 9, nullable = true)
+	private String cep;
+
+	@Column(name = "endereco", length = 30, nullable = true)
+	private String endereco;
+
+	@Column(name = "municipio", length = 30, nullable = true)
+	private String municipio;
+
+	@Column(name = "uf", length = 02, nullable = true)
+	private String uf;
+	
+	@Column(name="contato", length = 15, nullable = false)
+	private String contato;
+	
+	@Column(name = "email", length = 50, nullable = false)
+	private String email;
+
+	@Column(name="telefone", length = 14, nullable = false)
+	private String telefone;
+
+	public Fornecedor(FornecedorDTO dto) {
+		this.id = dto.idfor();
+		this.razaosocial = dto.razaosocial();
+		this.denosocial = dto.denosocial();
+		this.cnpj = dto.cnpj();
+		this.municipio  = dto.municipio();
+		this.uf = dto.uf();
+		this.contato = dto.contato();
+		this.email = dto.email();
+		this.telefone = dto.telefone();
+	}
+
+	public FornecedorDTO convert() {
+		return new FornecedorDTO(this.id, this.razaosocial, this.denosocial, 
+				this.cnpj, this.municipio, this.uf, this.contato, this.email,
+				this.telefone);
+	}
+
+}

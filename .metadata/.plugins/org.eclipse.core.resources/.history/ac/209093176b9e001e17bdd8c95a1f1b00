@@ -1,0 +1,140 @@
+package com.cilazata.services;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
+
+import com.cilazatta.dto.NFiscalDTO;
+import com.cilazatta.dto.NFiscalPageDTO;
+import com.cilazatta.dto.NFiscalRequestDTO;
+import com.cilazatta.dto.mapper.NFiscalMapper;
+import com.cilazatta.entity.NotaFiscal;
+import com.cilazatta.entity.NotaFiscalItem;
+import com.cilazatta.entity.ProdutoTabelaLocado;
+import com.cilazatta.repositories.NotaFiscalRepository;
+import com.cilazatta.repositories.ProdutoTabelaLocadoRepository;
+import com.cilazatta.services.exeptions.ObjectNotFoundException;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+
+@Service
+@Validated
+public class NotaFiscalService {
+	
+	private final NotaFiscalRepository objRepo;
+	private final NFiscalMapper objMapper;
+	private final ProdutoTabelaLocadoRepository repo;
+	
+	public NotaFiscalService(NotaFiscalRepository nfRepo, 
+			NFiscalMapper nfMapper, ProdutoTabelaLocadoRepository repo) {
+		this.objRepo = nfRepo;
+		this.objMapper = nfMapper;
+		this.repo = repo;
+	}
+	
+	
+	public NFiscalDTO create(NFiscalRequestDTO dto) { 
+		 NotaFiscal nf = objMapper.toModel(dto);
+		 nf = objRepo.save(nf);
+		 this.geraTabelaLocado(nf.getNfItens());
+		 return objMapper.toDTO(nf);	
+	}
+	
+	
+	public List<NFiscalDTO> findAll(){
+		List<NotaFiscal> listObj = objRepo.findAll();
+		List<NFiscalDTO> listObjDto = listObj.stream().map(nf-> objMapper.toDTO(nf)).collect(Collectors.toList());
+		return listObjDto;
+	}
+	
+	public NFiscalPageDTO findPageAll(@PositiveOrZero int page, @Positive @Max(1000) int pageSize) {
+		Page<NotaFiscal> nfPage = objRepo.findAll(PageRequest.of(page, pageSize));
+		List<NFiscalDTO> listNfDto = nfPage.getContent().stream()
+				.map(objMapper::toDTO)
+				.toList();
+		return new NFiscalPageDTO(listNfDto, nfPage.getTotalElements(), nfPage.getTotalPages());
+	}
+	
+	public NFiscalDTO findById(@Positive @NotNull Long id) {
+		return objRepo.findById(id).map(objMapper::toDTO)
+				.orElseThrow(()-> new ObjectNotFoundException("Registro Não Encontrado"));
+	}
+	
+	public NFiscalDTO update(@Positive @NotNull Long id, @Valid NFiscalRequestDTO dto) {
+		
+		return objRepo.findById(id).map(actual -> {
+			actual.setEmissao(LocalDate.parse(dto.emissaodto()));
+			actual.setSerie(dto.seriedto());
+			actual.setNumeronf(dto.numeronfdto());
+			actual.setValornf(Double.parseDouble(dto.valornfdto()));
+			updateData(actual, dto);
+			return objMapper.toDTO(objRepo.save(actual));
+		
+		})
+		.orElseThrow(() -> new  ObjectNotFoundException("Registro Não Encontrado"));
+	}
+	
+	private void updateData(NotaFiscal actual, NFiscalRequestDTO dto) {
+		List<NotaFiscalItem> itensToRemove = actual.getNfItens()
+				.stream()
+				.filter(item-> dto.itensdto().stream()
+							.anyMatch(itemDto -> itemDto.idpkdto() != 0 && itemDto.idpkdto()==item.getIdPk()))
+							.toList();
+		itensToRemove.forEach(actual::removeItem);
+		
+		dto.itensdto().forEach(itemdto->{
+			if(itemdto.idpkdto()==0) {
+				actual.addItem(objMapper.convert(itemdto));
+			} else {
+				actual.getNfItens().stream()
+				.filter(item -> item.getIdPk()==itemdto.idpkdto())
+				.findAny()
+				.ifPresent(item -> {
+					item.setProduto(itemdto.proddto().convert());
+					item.setQtde(Double.parseDouble(itemdto.qtdedto()));
+					item.setVunit(Double.parseDouble(itemdto.vunitdto()));
+					item.setVtotal(Double.parseDouble(itemdto.vtotaldto()));
+					item.setVLocDiaria(Double.parseDouble(itemdto.vlocdiariadto()));
+					item.setVLocMensal(Double.parseDouble(itemdto.vlocmensaldto()));
+				});
+			}
+		});
+		
+	}
+
+	public Boolean deleteById(@Positive @NotNull Long id) {
+		return objRepo.findById(id).map(recordFound -> {
+			objRepo.deleteById(id);
+			return true;
+		}).orElse(false);
+	}
+	
+	//Alimenta a tabela de Equipamentos  Locados.
+	private void geraTabelaLocado(List<NotaFiscalItem> itens) {
+		
+		List<ProdutoTabelaLocado> locados = new ArrayList<>();
+	
+			for(NotaFiscalItem rec : itens) {
+				
+				for(int w=1; w<=rec.getQtde(); w++) {
+				locados.add(new ProdutoTabelaLocado(null, rec.getNotaFiscal(),rec.getNotaFiscal().getFornecedor() ,rec.getProduto(),
+						rec.getNotaFiscal().getOs(), null, null, null, rec.getNotaFiscal().getEmissao(), 1,1,
+						rec.getVLocDiaria(),rec.getVLocMensal()));
+				}
+				
+				repo.saveAll(locados);
+				
+			}
+	
+}
+}

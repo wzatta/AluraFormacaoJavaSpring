@@ -1,0 +1,187 @@
+package com.cilazata.services;
+
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+
+import com.cilazatta.dto.BoletimMedicaoDTO;
+import com.cilazatta.dto.PeriodoMedicaoDTO;
+import com.cilazatta.entity.BoletimMedicao;
+import com.cilazatta.entity.BoletimMedicaoItem;
+import com.cilazatta.entity.Fornecedor;
+import com.cilazatta.entity.Os;
+import com.cilazatta.entity.ProdutoTabelaLocado;
+import com.cilazatta.repositories.BoletimMedicaoItemRepository;
+import com.cilazatta.repositories.BoletimMedicaoRepository;
+import com.cilazatta.services.exeptions.FieldDataIntegrityViolationException;
+import com.cilazatta.services.exeptions.GenericsExceptionError;
+import com.cilazatta.services.exeptions.ObjectNotFoundException;
+
+@Service
+public class BoletimMedicaoService {
+
+	@Autowired
+	private BoletimMedicaoRepository objRepo;
+	
+	@Autowired
+	private ProdutoTabelaLocadoService serv;
+	
+	@Autowired
+	private BoletimMedicaoItemRepository repo;
+	
+	public BoletimMedicaoDTO insertObj(BoletimMedicaoDTO dto) {
+	try {
+		BoletimMedicao obj = dto.convert();
+		BoletimMedicao obj1 = new BoletimMedicao();
+		obj1 = objRepo.save(obj);
+		this.geraMedicao(obj1);
+		return obj.convert();	
+	} catch (DataIntegrityViolationException e) {
+		throw new FieldDataIntegrityViolationException("Registro ja Cadastrado!");
+	} 
+	catch (Exception e) {
+		throw new GenericsExceptionError(e.getMessage());
+	}
+	
+	}
+	
+	public List<BoletimMedicaoDTO> findAll(){
+		List<BoletimMedicao> listObj = objRepo.findAll();
+		List<BoletimMedicaoDTO> objDto = listObj.stream()
+				.map(r -> r.convert())
+				.collect(Collectors.toList());
+		return objDto;
+	}
+	
+	public BoletimMedicaoDTO findById(Long id) {
+		Optional<BoletimMedicao> optionalObj = objRepo.findById(id);
+		BoletimMedicao obj = optionalObj.orElseThrow(()-> new ObjectNotFoundException("Registro Não Encontrado"));
+		return obj.convert();
+	}
+	
+	public BoletimMedicaoDTO update(Long id, BoletimMedicaoDTO dto) {
+		BoletimMedicao obj = objRepo.getReferenceById(id);
+		obj = updateData(obj, dto);
+		obj = objRepo.save(obj);
+		return obj.convert();
+	}
+	
+	private BoletimMedicao updateData(BoletimMedicao obj, BoletimMedicaoDTO dto) {
+		obj = dto.convert();
+		return obj;
+	}
+	
+	public Boolean deleteById(Long id) {
+		return objRepo.findById(id).map(recordFound -> {
+			objRepo.deleteById(id);
+			return true;
+		}).orElse(false);
+	}
+	
+	public void geraMedicaoGeral(PeriodoMedicaoDTO perDto) {
+		this.geraAllMedicao(perDto);
+	}
+	
+	
+	private void geraAllMedicao(PeriodoMedicaoDTO perDto) {
+		
+	//	Set<ProdutoTabelaLocado> tblLoc1 = new HashSet<>();
+		
+		List<ProdutoTabelaLocado> locados = serv.findAll();
+		
+		Set<Fornecedor> forMed = locados.stream()
+				.map(f-> f.getFornecedor()).collect(Collectors.toSet());
+		
+		Set<Os> osMed = locados.stream()
+						.map(t-> t.getOs())
+						.collect(Collectors.toSet());
+			
+		for(Fornecedor x : forMed) {
+	
+			for(Os y : osMed ) {
+			
+			List<ProdutoTabelaLocado> teste = locados.stream()
+					.filter(z-> z.getFornecedor().equals(x) && z.getOs().equals(y))
+					.collect(Collectors.toList());
+				
+				try {
+					if(!teste.isEmpty()) {
+						BoletimMedicaoDTO dto = new BoletimMedicaoDTO(null, x.convert(), y.convert(), perDto);
+						this.insertObj(dto);}
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+				
+				
+			}
+			}
+	}
+	
+	
+	private void geraMedicao(BoletimMedicao bm) {
+		List<BoletimMedicaoItem> bmitens = new ArrayList<>();
+		List<ProdutoTabelaLocado> locados = serv.findAll(); 
+		locados.stream()
+		.filter(eq-> eq.getNf().getFornecedor().equals(bm.getFornecedor())&&eq.getOs().equals(bm.getOs()))
+		.forEach(eq->{
+			Integer dias = this.calcLoc(bm.getPermed().getDataInicial(), bm.getPermed().getDataFinal(), eq.getDataLocInicial(), eq.getDataLocFinal());
+			//Double valorLocacao = dias * eq.getVLocDiaria();
+			BoletimMedicaoItem bmitem = new BoletimMedicaoItem(bm, eq ,dias,eq.getVLocDiaria());
+			bmitem = repo.save(bmitem);
+			bmitens.add(bmitem);
+		});
+		for(BoletimMedicaoItem x: bmitens) {
+			System.out.println(x.toString());
+		}
+		
+	}
+	
+	private Integer calcLoc(LocalDate periodoInicial, LocalDate periodoFinal, LocalDate locInicial, LocalDate locFinal) {
+		
+		Integer dias = 0;
+		if(locInicial.isAfter(periodoFinal)) { return null;}
+		if(locFinal==null) {
+			// Entrou Antes do Período de Medição e não foi devolvido até o momento - sempre Integral;
+			if((locInicial.isBefore(periodoInicial)) && (locFinal==null || locFinal.isAfter(periodoFinal))){
+				Period period1 = Period.between(periodoInicial, periodoFinal);
+				dias = period1.getDays(); //Integral
+				return dias;
+			} else {
+				// Entrou Dentro do Período e Não foi devolvido;
+				if((locInicial.isEqual(periodoInicial)||locInicial.isAfter(periodoInicial)) && (locFinal==null || locFinal.isAfter(periodoFinal))){
+					Period period1 = Period.between(locInicial, periodoFinal);
+					dias = period1.getDays(); //Integral
+					return dias;
+				} 
+			}
+			
+		} else { 
+		   	// Entrou antes do Período de Medição e devolvido dentro do periodo
+		if((locInicial.isBefore(locFinal)) && locInicial.isBefore(periodoInicial)  && locFinal.isBefore(periodoFinal)||locFinal.isEqual(periodoFinal)) {
+				Period period1 = Period.between(periodoInicial, locFinal);
+				dias = period1.getDays(); //Integral ou Parcial	
+				return dias;
+		} else {
+			// Entrou e Devolvido dentro do Período de Medição.
+		if(((locInicial.isBefore(locFinal))&&(locInicial.isEqual(periodoInicial)||locInicial.isAfter(periodoInicial))&&(locInicial.isBefore(periodoFinal)))&&
+				(locFinal.isBefore(periodoFinal)||locFinal.isEqual(periodoFinal))){
+			Period period1 = Period.between(locInicial, locFinal); 
+			dias = period1.getDays();
+			return dias;
+		}
+	}
+		//return dias;
+	}
+		return dias;
+	}
+	
+	
+}

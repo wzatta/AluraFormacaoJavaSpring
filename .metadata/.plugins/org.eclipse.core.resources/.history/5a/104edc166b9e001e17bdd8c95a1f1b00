@@ -1,0 +1,36 @@
+package com.cilazata.entity.pk;
+
+import java.io.Serializable;
+
+import com.cilazatta.entity.NotaFiscal;
+import com.cilazatta.entity.Produto;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Embeddable
+public class NotaFiscalPK implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@EqualsAndHashCode.Include
+	@ManyToOne
+	@JoinColumn(name="nf_id")
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+	private NotaFiscal nfpk;
+	
+	@EqualsAndHashCode.Include
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name="prod_id")
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+	private Produto produtopk;
+}

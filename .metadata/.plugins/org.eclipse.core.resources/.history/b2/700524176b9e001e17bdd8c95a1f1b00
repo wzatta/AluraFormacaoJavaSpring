@@ -1,0 +1,61 @@
+package com.cilazata.resources;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.cilazatta.dto.OsDTO;
+import com.cilazatta.services.OsService;
+
+@RestController
+@RequestMapping(value="api/v1/os")
+public class OsResource {
+	
+
+	@Autowired
+	private OsService service;
+
+	@PostMapping
+	public ResponseEntity<OsDTO> insertObj(@RequestBody OsDTO dto) {
+		System.out.println("testando dto -"+dto.descosdto());
+		dto = service.insertObj(dto);
+		return ResponseEntity.created(null).body(dto);
+	}
+
+	@GetMapping
+	public ResponseEntity<List<OsDTO>> findAll() {
+		return ResponseEntity.ok().body(service.findAll());
+	}
+
+	@GetMapping(value = "/{id}")
+	public ResponseEntity<OsDTO> findById(@PathVariable Long id) {
+		OsDTO dto = service.findById(id);
+		return ResponseEntity.ok().body(dto);
+	}
+
+	@PutMapping(value = "/{id}")
+	public ResponseEntity<OsDTO> update(@PathVariable Long id, @RequestBody OsDTO dto) {
+		dto = service.update(id, dto);
+		return ResponseEntity.ok().body(dto);
+	}
+
+	@DeleteMapping(value = "/{id}")
+	public ResponseEntity<Void> delete(@PathVariable Long id) {
+		Boolean isDeletado = service.deleteById(id);
+		if (isDeletado) {
+			return ResponseEntity.noContent().<Void>build();
+		} else {
+			return ResponseEntity.notFound().build();
+		}
+	}
+	
+}

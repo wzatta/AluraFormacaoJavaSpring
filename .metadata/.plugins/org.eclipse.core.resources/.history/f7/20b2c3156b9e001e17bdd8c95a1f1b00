@@ -1,0 +1,15 @@
+package com.cilazata.dto;
+
+import java.util.List;
+
+import com.cilazatta.entity.Bm;
+
+public record BmDTO(
+	Long idDto, String numeroBmdto, FornecedorDTO forndto, OsDTO osdto ,
+	PeriodoMedicaoDTO pmdto, Double vTotalBmdto, List<Bm_ItemDTO> bmItensDto
+		) {
+	public Bm convert() {
+		return new Bm(this);
+	}
+
+}

@@ -1,0 +1,108 @@
+package com.cilazata.services.calcbm;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.cilazatta.dto.BmDTO;
+import com.cilazatta.dto.BmRequestFornecDTO;
+import com.cilazatta.dto.mapper.BmMapper;
+import com.cilazatta.entity.Bm;
+import com.cilazatta.entity.BmItem;
+import com.cilazatta.entity.Os;
+import com.cilazatta.entity.ProdutoTabelaLocado;
+import com.cilazatta.repositories.BmRepository;
+import com.cilazatta.services.ProdutoTabelaLocadoService;
+
+@Service
+public class GeraBMFornecedorService {
+
+	@Autowired
+	private ProdutoTabelaLocadoService service;
+	
+	@Autowired
+	private BmRepository bmRepo;
+	
+	@Autowired
+	private BmMapper objMapper;
+	
+	@Autowired
+	private CalcBm calcServ;
+
+	public List<BmDTO> GeraBmPorFornecedor(BmRequestFornecDTO bmReqForDto) {
+		
+		List<BmDTO> listaDeBmDTO = new ArrayList<BmDTO>();
+		
+//Preparar um Lista dos Produtos do fornecedor escolhido.
+
+		List<ProdutoTabelaLocado> listaLocadosPorFornecedor = service.findByFornecedor(bmReqForDto.fornecedordto().convert());
+
+//filtrar somente os produtos com Medição neste Período;		
+		
+		List<ProdutoTabelaLocado> listaLocPorFornecNoPeriodo = listaLocadosPorFornecedor
+				.stream()
+				.filter(item -> item.getDataLocInicial().isBefore(bmReqForDto.periodoMedicaodto().datafinaldto()))
+				.collect(Collectors.toList());
+		
+		
+//Prepara uma Lista das Os - atendidas por este Fornecedor escolhido
+
+		List<Os> listaOsPorFornecedor = listaLocPorFornecNoPeriodo
+				.stream()
+				.map(f-> f.getOs())
+				.distinct()
+				.sorted(Comparator.comparing(Os::getCodos))
+				.collect(Collectors.toList());
+		
+//Pecorre toda a Lista Gerando os BM por Os		
+		for(Os os : listaOsPorFornecedor) {
+
+			Bm bm = new Bm();
+			bm.setFornecedor(bmReqForDto.fornecedordto().convert());
+			bm.setPermed(bmReqForDto.periodoMedicaodto().convert());
+			bm.setOs(os);
+			bm.getBmItens().clear();
+			// Criar uma Lista com os produtos do Fornecedor desta Os
+		List<ProdutoTabelaLocado> listaProdOsForn = listaLocadosPorFornecedor
+					.stream()
+					.filter(f-> f.getOs().equals(os))
+					.collect(Collectors.toList());
+		listaProdOsForn.stream()
+			.forEach(item -> {
+				BmItem bmItem = new BmItem();
+				bmItem.setBm(bm);
+				bmItem.setProdTabLoc(item);
+				bmItem.setVLocDiaria(item.getVLocDiaria());
+				bmItem.setQtdeDia(
+						this.calcServ.calcLoc(bm.getPermed().getDataInicial(), bm.getPermed().getDataFinal(), item.getDataLocInicial(), item.getDataLocFinal())
+						);
+				bmItem.setVLocTotal(bmItem.getVLocDiaria()*bmItem.getQtdeDia());
+				bm.addBmItem(bmItem);
+			});
+				bm.calcValorBm();
+				Bm bm1 = bmRepo.save(bm);
+				bm1.addNumeroBm(bm.getPermed().getDataFinal().getYear());
+				bm1 = bmRepo.save(bm1);
+				
+				BmDTO bmdto = objMapper.toDTO(bm1);
+				
+			System.out.println(
+					bm.getFornecedor().getRazaosocial()+" // "+
+					bm.getOs().getCodos()+" // "+
+					bm.getPermed().getDataInicial()+" // "+
+					bm.getPermed().getDataFinal());
+			for(BmItem x : bm.getBmItens()) {
+				System.out.println(
+						x.getProdTabLoc().getProd().getDescricao()+" // "+
+						x.getQtdeDia()+"// "+ x.getVLocDiaria()+" // "+ x.getVLocTotal()		
+						);
+				listaDeBmDTO.add(bmdto);
+			}
+		}
+		return listaDeBmDTO;
+	}
+}

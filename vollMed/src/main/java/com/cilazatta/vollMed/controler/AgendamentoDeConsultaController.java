@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.cilazatta.vollMed.dto.AgendamentoDeConsultaDTO;
 import com.cilazatta.vollMed.dto.RequestByIdDTO;
 import com.cilazatta.vollMed.dto.ResponseAgendaDoMedicoDTO;
+import com.cilazatta.vollMed.dto.ResponseConsultaDTO;
 import com.cilazatta.vollMed.services.AgendamentoDeConsultaService;
 
 import jakarta.validation.Valid;
@@ -25,9 +26,13 @@ public class AgendamentoDeConsultaController {
 	private AgendamentoDeConsultaService service;
 	
 	@PostMapping
-	public ResponseEntity<Boolean> agendarConsulta(@RequestBody @Valid AgendamentoDeConsultaDTO dto){
-		Boolean registroSalvo = this.service.validarConsulta(dto);
-		return ResponseEntity.ok(registroSalvo);
+	public ResponseEntity agendarConsulta(@RequestBody @Valid AgendamentoDeConsultaDTO dto){
+		ResponseConsultaDTO registroSalvo = this.service.validarConsulta(dto);
+		if(registroSalvo.status()) {
+		return ResponseEntity.ok().body(registroSalvo.dto());
+		} else {
+			return ResponseEntity.badRequest().body(registroSalvo.texto());
+		}
 	}
 	
 	@PostMapping("/medico")

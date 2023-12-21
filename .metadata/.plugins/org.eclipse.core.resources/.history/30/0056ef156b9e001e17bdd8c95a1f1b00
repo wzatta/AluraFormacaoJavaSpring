@@ -1,0 +1,76 @@
+package com.cilazata.dto.mapper;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Component;
+
+import com.cilazatta.dto.NFiscalDTO;
+import com.cilazatta.dto.NFiscalItemDTO;
+import com.cilazatta.dto.NFiscalRequestDTO;
+import com.cilazatta.entity.NotaFiscal;
+import com.cilazatta.entity.NotaFiscalItem;
+
+@Component
+public class NFiscalMapper {
+
+	public NotaFiscal toModel(NFiscalRequestDTO nFiscalRequestDto) {
+	NotaFiscal nf = new NotaFiscal();
+	nf.setFornecedor(nFiscalRequestDto.fordto().convert());
+	nf.setOs(nFiscalRequestDto.osdto().convert());
+	nf.setNumeronf(nFiscalRequestDto.numeronfdto());
+	nf.setSerie(nFiscalRequestDto.seriedto());
+	nf.setEmissao(LocalDate.parse(nFiscalRequestDto.emissaodto()));
+	nf.setValornf(Double.parseDouble(nFiscalRequestDto.valornfdto()));
+	
+		List<NotaFiscalItem> itens = nFiscalRequestDto.itensdto().stream()
+				.map(itemdto -> {
+					NotaFiscalItem item = new NotaFiscalItem();
+					if(item.getIdPk()!=null) {
+					if(item.getIdPk()>0) {
+						item.setIdPk(itemdto.idpkdto());
+					}}
+					item.setProduto(itemdto.proddto().convert());
+					item.setQtde(Double.parseDouble(itemdto.qtdedto()));
+					item.setVunit(Double.parseDouble(itemdto.vunitdto()));
+					item.setVtotal(Double.parseDouble(itemdto.vtotaldto()));
+					item.setVLocDiaria(Double.parseDouble(itemdto.vlocdiariadto()));
+					item.setVLocMensal(Double.parseDouble(itemdto.vlocmensaldto()));
+					item.setNotaFiscal(nf);
+					return item;
+				}).collect(Collectors.toList());
+		nf.setNfItens(itens);
+		return nf;
+	}
+	
+	public NFiscalDTO toDTO(NotaFiscal nf) {
+		
+		if(nf == null) {
+			return null;
+		}
+		
+		List<NFiscalItemDTO> itensdtoList = nf.getNfItens()
+				.stream()
+				.map(item -> new NFiscalItemDTO(item.getIdPk(), item.getProduto().convert(),
+						item.getQtde().toString(), item.getVunit().toString(),item.getVtotal().toString(),
+						item.getVLocDiaria().toString(), item.getVLocMensal().toString()))
+				.collect(Collectors.toList());
+		
+		return   new NFiscalDTO(nf.getId(), nf.getFornecedor().convert(), nf.getOs().convert(), nf.getNumeronf(),
+				nf.getSerie(), nf.getEmissao().toString(), nf.getValornf().toString(), itensdtoList);				
+	}
+	
+	public NotaFiscalItem convert(NFiscalItemDTO nfitemdto) {
+		NotaFiscalItem item = new NotaFiscalItem();
+		item.setIdPk(nfitemdto.idpkdto());
+		item.setProduto(nfitemdto.proddto().convert());
+		item.setQtde(Double.parseDouble(nfitemdto.qtdedto()));
+		item.setVunit(Double.parseDouble(nfitemdto.vunitdto()));
+		item.setVtotal(Double.parseDouble(nfitemdto.vtotaldto()));
+		item.setVLocDiaria(Double.parseDouble(nfitemdto.vlocdiariadto()));
+		item.setVLocMensal(Double.parseDouble(nfitemdto.vlocmensaldto()));
+		return item;
+	} 
+	
+}

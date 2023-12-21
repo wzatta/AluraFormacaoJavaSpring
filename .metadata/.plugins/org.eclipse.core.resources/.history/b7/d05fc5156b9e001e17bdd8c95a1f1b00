@@ -1,0 +1,12 @@
+package com.cilazata.dto;
+
+import com.cilazatta.entity.BoletimMedicao;
+
+public record BoletimMedicaoDTO(Long iddto,  FornecedorDTO fordto,OsDTO osdto, PeriodoMedicaoDTO pmdto) {
+
+	public BoletimMedicao convert() {
+		return new BoletimMedicao(this);
+	}
+	
+	
+}

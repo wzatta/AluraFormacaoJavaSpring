@@ -1,0 +1,11 @@
+package com.cilazata.dto;
+
+import com.cilazatta.entity.Produto;
+
+public record ProdutoDTO(Long idDto, String descricaoDto, String marcaDto, String modeloDto) {
+
+	public Produto convert() {
+		return new Produto(this);
+	}
+	
+}

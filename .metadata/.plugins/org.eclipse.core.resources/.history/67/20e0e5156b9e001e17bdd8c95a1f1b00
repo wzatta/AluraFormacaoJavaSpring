@@ -1,0 +1,13 @@
+package com.cilazata.dto;
+
+import com.cilazatta.entity.Fornecedor;
+
+public record FornecedorDTO(Long idfor, String razaosocial, String denosocial, String cnpj,
+		String municipio, String uf, String contato, String email, String telefone) {
+	
+	
+	public Fornecedor convert() {
+		return new Fornecedor(this);
+	}
+	
+}

@@ -1,0 +1,55 @@
+package com.cilazata.dto.mapper;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Component;
+
+import com.cilazatta.dto.BmDTO;
+import com.cilazatta.dto.BmRequestDTO;
+import com.cilazatta.dto.Bm_ItemDTO;
+import com.cilazatta.entity.Bm;
+import com.cilazatta.entity.BmItem;
+
+@Component
+public class BmMapper {
+	
+	public Bm toModel(BmRequestDTO bmRequestDto) {
+		Bm bm = new Bm();
+		bm.setFornecedor(bmRequestDto.forndto().convert());
+		bm.setOs(bmRequestDto.osdto().convert());
+		bm.setPermed(bmRequestDto.pmdto().convert());
+		
+		List<BmItem> bmItens = bmRequestDto.bmItensDto().stream()
+				.map(bmItemDto -> {
+					BmItem bmItem = new BmItem();
+				if(bmItem.getId()==null) {
+					if(bmItem.getId()>0) {
+						bmItem.setId(bmItemDto.iddto());
+					}}	
+				bmItem.setProdTabLoc(bmItemDto.ptldto().convert());
+				bmItem.setQtdeDia(bmItemDto.qtdeDiadto());
+				bmItem.setVLocDiaria(bmItemDto.vLocDiariadto());
+				bmItem.setVLocTotal(bmItemDto.vLocTotaldto());
+				bmItem.setBm(bm);
+				return bmItem;
+				}).collect(Collectors.toList());
+		
+		bm.setBmItens(bmItens);
+		return bm;
+	}
+	
+	public BmDTO toDTO(Bm bm) {
+		if(bm==null) {
+			return null;
+		}
+		
+		List<Bm_ItemDTO> bmItensDtoList = bm.getBmItens().stream()
+				.map(bmItem-> new Bm_ItemDTO(bmItem.getId(), bmItem.getProdTabLoc().convert(), bmItem.getQtdeDia(),
+						bmItem.getVLocDiaria(), bmItem.getVLocTotal())).collect(Collectors.toList());
+		
+		return new BmDTO(bm.getId(),bm.getNumeroBm() ,bm.getFornecedor().convert(),
+				bm.getOs().convert(),bm.getPermed().convert(),bm.getVTotalBm(),bmItensDtoList);
+	}
+
+}

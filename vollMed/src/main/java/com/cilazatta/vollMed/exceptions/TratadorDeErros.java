@@ -38,8 +38,6 @@ public class TratadorDeErros {
 	}
 
 	
-	
-	
 //===================================================================	
 	private record DadosErroValidacaoDTO(String campo, String mensagem) {
 		public DadosErroValidacaoDTO(FieldError erro) {

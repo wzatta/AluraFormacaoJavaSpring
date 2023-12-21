@@ -1,0 +1,83 @@
+package com.cilazata.resources;
+
+
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.cilazatta.dto.NFiscalDTO;
+import com.cilazatta.dto.NFiscalRequestDTO;
+import com.cilazatta.services.NotaFiscalService;
+
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
+@Validated
+@RestController
+@RequestMapping(value="api/v1/notafiscal")
+public class NotaFiscalResource {
+	
+	private final NotaFiscalService service;
+	
+	public NotaFiscalResource(NotaFiscalService nfService) {
+		this.service = nfService; 
+	}
+
+	@PostMapping
+	public ResponseEntity<NFiscalDTO> create(@RequestBody NFiscalRequestDTO dto) {
+		for(int i=0; i<10; i++) {
+			System.out.println(dto.toString());
+		}
+		NFiscalDTO nfdto = service.create(dto);
+		return ResponseEntity.created(null).body(nfdto);
+	}
+	
+	@GetMapping
+	public ResponseEntity<List<NFiscalDTO>> findAll(){
+		List<NFiscalDTO> listnfdto = service.findAll();
+		return ResponseEntity.created(null).body(listnfdto);
+	}
+	
+	/*
+	@GetMapping
+	public NFiscalPageDTO findPageAll(
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue ="10") int pageSize){
+		return service.findPageAll(page, pageSize);
+	}
+	*/
+	
+	
+
+	@GetMapping(value = "/{id}")
+	public ResponseEntity<NFiscalDTO> findById(@PathVariable @Positive @NotNull Long id) {
+		NFiscalDTO dto = service.findById(id);
+		return ResponseEntity.ok().body(dto);
+	}
+
+	@PutMapping(value = "/{id}")
+	public ResponseEntity<NFiscalDTO> update(@PathVariable Long id, @RequestBody NFiscalRequestDTO dto) {
+		NFiscalDTO nfdto = service.update(id, dto);
+		return ResponseEntity.ok().body(nfdto);
+	}
+
+	@DeleteMapping(value = "/{id}")
+	public ResponseEntity<Void> delete(@PathVariable @Positive @NotNull Long id) {
+		Boolean isDeletado = service.deleteById(id);
+		if (isDeletado) {
+			return ResponseEntity.noContent().<Void>build();
+		} else {
+			return ResponseEntity.notFound().build();
+		}
+	}
+	
+
+}

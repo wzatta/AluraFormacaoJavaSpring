@@ -1,0 +1,9 @@
+package com.cilazata.repositories;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.cilazatta.entity.Os;
+
+public interface OsRepository extends JpaRepository<Os, Long> {
+
+}

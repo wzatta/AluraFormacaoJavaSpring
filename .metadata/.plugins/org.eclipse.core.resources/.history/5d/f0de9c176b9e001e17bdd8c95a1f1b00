@@ -1,0 +1,79 @@
+package com.cilazata.services;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.cilazatta.dto.OsDTO;
+import com.cilazatta.entity.Os;
+import com.cilazatta.repositories.OsRepository;
+import com.cilazatta.services.exeptions.ObjectNotFoundException;
+
+@Service
+public class OsService {
+
+
+	@Autowired
+	private OsRepository objRepo;
+	
+	
+	public OsDTO insertObj(OsDTO dto) {
+		Os obj = dto.convert();
+		obj = objRepo.save(obj);
+		return obj.convert();
+	}
+	
+	public List<OsDTO> findAll(){
+		List<Os> listObj = objRepo.findAll();
+		List<OsDTO> objDto = listObj.stream()
+				.map(r -> r.convert())
+				.collect(Collectors.toList());
+		return objDto;
+	}
+	
+	public OsDTO findById(Long id) {
+		Optional<Os> optionalObj = objRepo.findById(id);
+		Os obj = optionalObj.orElseThrow(()-> new ObjectNotFoundException("Registro Não Encontrado"));
+		return obj.convert();
+	}
+	
+	public OsDTO update(Long id, OsDTO dto) {
+		Os obj = objRepo.getReferenceById(id);
+		obj = updateData(obj, dto);
+		obj = objRepo.save(obj);
+		return obj.convert();
+	}
+	
+	private Os updateData(Os obj, OsDTO dto) {
+		obj = dto.convert();
+		return obj;
+	}
+	
+	public Boolean deleteById(Long id) {
+		return objRepo.findById(id).map(recordFound -> {
+			objRepo.deleteById(id);
+			return true;
+		}).orElse(false);
+	}
+	
+	public List<OsDTO> saveAll(List<OsDTO> dtos){
+		
+		List<Os> oss = dtos.stream()
+				.map(x-> x.convert())
+				.collect(Collectors.toList());
+		
+		oss = objRepo.saveAll(oss);
+		
+		dtos = oss.stream()
+				.map(y-> y.convert())
+				.collect(Collectors.toList());
+		
+		return dtos;
+		
+	}
+	
+	
+}

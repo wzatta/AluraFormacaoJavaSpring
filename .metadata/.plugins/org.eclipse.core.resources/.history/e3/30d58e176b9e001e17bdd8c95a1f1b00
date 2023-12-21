@@ -1,0 +1,114 @@
+package com.cilazata.services;
+
+import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import com.cilazatta.dto.FornecedorDTO;
+import com.cilazatta.dto.ProdutoTabelaLocadoDTO;
+import com.cilazatta.entity.Fornecedor;
+import com.cilazatta.entity.ProdutoTabelaLocado;
+import com.cilazatta.repositories.PageProdutoTableLocadoRepository;
+import com.cilazatta.repositories.ProdutoTabelaLocadoRepository;
+import com.cilazatta.services.exeptions.ObjectNotFoundException;
+
+@Service
+public class ProdutoTabelaLocadoService {
+
+	@Autowired
+	private ProdutoTabelaLocadoRepository objRepo;
+	
+	@Autowired
+	private PageProdutoTableLocadoRepository objPageRepo;
+
+	
+	public ProdutoTabelaLocadoDTO findByid(Long id) {
+		ProdutoTabelaLocado ptloc = objRepo.findById(id).orElseThrow(
+				()-> new ObjectNotFoundException("Registro não Encontrado") 
+				);
+		return ptloc.convert();
+	}
+	
+	public ProdutoTabelaLocadoDTO update(Long id, ProdutoTabelaLocadoDTO ptlocdto) {
+		ProdutoTabelaLocado ptloc = objRepo.getReferenceById(id);
+		updateData(ptloc, ptlocdto);
+		ptloc = objRepo.save(ptloc);
+		return ptloc.convert();
+	}
+	
+	private void updateData(ProdutoTabelaLocado ptloc, ProdutoTabelaLocadoDTO ptlocdto) {
+			ptloc.setSerie(ptlocdto.seriedto());
+			ptloc.setPatMks(ptlocdto.patdto());
+			ptloc.setPatFor(ptlocdto.patfordto());
+			ptloc.setVLocDiaria(Double.parseDouble(ptlocdto.vLocDiaria()));
+			ptloc.setVLocMensal(Double.parseDouble(ptlocdto.vLocMensal()));
+	}
+
+//Lista com todos produtos locados
+	public List<ProdutoTabelaLocado> findAll(){
+		List<ProdutoTabelaLocado> listObj = objRepo.findAll();
+		return listObj;
+	}
+	
+//Lista com todos os Produtos locados de um determinado fornecedor
+	public List<ProdutoTabelaLocadoDTO> findByFornecedor(FornecedorDTO dto){
+		Fornecedor x = dto.convert();
+		List<ProdutoTabelaLocadoDTO> listObj = objRepo.findByFornecedor(x).stream()
+				.map(r-> r.convert())
+				.collect(Collectors.toList());
+		return listObj;
+	}	
+	
+	
+//Lista como todos os produtos locados de um determinado fornecedor	
+	public List<ProdutoTabelaLocado> findByFornecedor(Fornecedor x){
+		List<ProdutoTabelaLocado> listObj = objRepo.findByFornecedor(x);
+		return listObj;
+	}
+	
+//Lista com todos os  produtos locados paginado	
+	public Page<ProdutoTabelaLocadoDTO> findPageAll(Pageable pageabe){
+		 Pageable pageabe1 = PageRequest.of(pageabe.getPageNumber(), 
+				 pageabe.getPageSize(),Sort.Direction.ASC, "prod");
+		 return objPageRepo.findAll(pageabe1).map(r-> r.convert());
+	}
+//Lista com todos os produtos locados por fornecedor paginado
+	public Page<ProdutoTabelaLocadoDTO> findByFornecedorPage(String textSearch,Pageable pageabe){
+		Pageable pageabe1 = PageRequest.of(pageabe.getPageNumber(), 
+				pageabe.getPageSize(),Sort.Direction.ASC, "prod");
+		return objPageRepo.searchP(textSearch.trim(), pageabe1).map(m-> m.convert());
+	}
+	
+	//========================================================
+
+//Lista com todos os Fornecedores com produtos locados com ou sem saldo.	
+	public List<FornecedorDTO> findAllForn(){
+		List<Fornecedor> listForn = objRepo.findAll().stream()
+				.map(r-> r.getFornecedor())
+				.distinct()
+				.collect(Collectors.toList());
+		return listForn.stream()
+				.map(r-> r.convert())
+				.sorted(Comparator.comparing(FornecedorDTO::denosocial))
+				.collect(Collectors.toList());
+	}
+//====================================================================	
+	
+	public LocalDate findFirstDateLoc(FornecedorDTO dto) {
+		ProdutoTabelaLocadoDTO prodLoc = this.findByFornecedor(dto).stream()
+				.min(Comparator.comparing(ProdutoTabelaLocadoDTO::dataInicial))
+				.orElseThrow(NoSuchElementException::new);
+		return prodLoc.dataInicial().minusMonths(1);
+	}
+
+	
+}
