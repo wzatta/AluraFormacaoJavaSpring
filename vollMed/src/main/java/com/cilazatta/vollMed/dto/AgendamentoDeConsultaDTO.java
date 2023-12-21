@@ -1,11 +1,15 @@
 package com.cilazatta.vollMed.dto;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import com.cilazatta.vollMed.enums.HorariosDeConsultas;
 
-public record AgendamentoDeConsultaDTO(Long idPaciente, String nomePaciente,
-		Long idMedico, String NomeMedico, LocalDateTime dataDoAgendamento, LocalDate dataDaConsulta, HorariosDeConsultas horario ) {
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Positive;
 
+public record AgendamentoDeConsultaDTO(
+		@Positive Long idPaciente, 
+		@Positive Long idMedico, 
+		@FutureOrPresent LocalDate dataDaConsulta, 
+		HorariosDeConsultas horario ) {
 }

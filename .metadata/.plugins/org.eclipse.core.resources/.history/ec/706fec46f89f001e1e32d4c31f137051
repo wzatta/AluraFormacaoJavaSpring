@@ -1,0 +1,5 @@
+package com.cilazatta.vollMed.services.validadores;
+
+public class ConsultaValidarPacienteNaoMarcarConsultaMesmoHorario {
+
+}

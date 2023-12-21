@@ -1,0 +1,46 @@
+package com.cilazatta.vollMed.services.validadores;
+
+import java.time.LocalDate;
+
+import com.cilazatta.vollMed.dto.AgendamentoDeConsultaDTO;
+import com.cilazatta.vollMed.dto.ResponseConsultaDTO;
+import com.cilazatta.vollMed.entities.CadastroDePaciente;
+import com.cilazatta.vollMed.entities.interfaces.ValidadorAgendamentoDeConsulta;
+import com.cilazatta.vollMed.enums.HorariosDeConsultas;
+import com.cilazatta.vollMed.repository.AgendamentoDeConsultaRepository;
+import com.cilazatta.vollMed.repository.CadastroDePacienteRepository;
+
+public class ConsultaValidarPacienteNaoMarcarConsultaMesmoHorario implements ValidadorAgendamentoDeConsulta {
+
+	private CadastroDePaciente paciente;
+
+	private final AgendamentoDeConsultaRepository agendaRepo;
+	private final CadastroDePacienteRepository pacienteRepo;
+
+	public ConsultaValidarPacienteNaoMarcarConsultaMesmoHorario(CadastroDePacienteRepository pacienteRepo,
+			AgendamentoDeConsultaRepository agendaRepo) {
+		this.agendaRepo = agendaRepo;
+		this.pacienteRepo = pacienteRepo;
+	}
+
+	@Override
+	public ResponseConsultaDTO validar(AgendamentoDeConsultaDTO dto) {
+
+		this.paciente = this.pacienteRepo.findById(dto.idPaciente()).orElseThrow();
+
+		if (this.verificarSeHaAgendamentoParaOpacienteNoMesmoHorario(this.paciente, dto.dataDaConsulta(),
+				dto.horario())) {
+			return new ResponseConsultaDTO(false, "Paciente Agendado com Outro Medico neste Horário", null);
+		}
+
+		return new ResponseConsultaDTO(true, "", null);
+	}
+
+	private boolean verificarSeHaAgendamentoParaOpacienteNoMesmoHorario(CadastroDePaciente paciente,
+			LocalDate dataDaConsulta, HorariosDeConsultas horario) {
+System.out.println(this.agendaRepo.findByPacienteAndDataAgendadaAndHoraAgendada(paciente, dataDaConsulta, horario).get());
+		return this.agendaRepo.findByPacienteAndDataAgendadaAndHoraAgendada(paciente, dataDaConsulta, horario)
+				.isPresent();
+	}
+
+}

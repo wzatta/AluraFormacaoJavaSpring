@@ -1,0 +1,22 @@
+package com.cilazatta.vollMed.services.validadores;
+
+import org.springframework.stereotype.Component;
+
+import com.cilazatta.vollMed.dto.AgendamentoDeConsultaDTO;
+import com.cilazatta.vollMed.dto.ResponseConsultaDTO;
+import com.cilazatta.vollMed.entities.interfaces.ValidadorAgendamentoDeConsulta;
+import com.cilazatta.vollMed.enums.HorariosDeConsultas;
+
+@Component
+public class ConsultaValidarHorarioAgendado implements ValidadorAgendamentoDeConsulta {
+	
+	@Override
+	public ResponseConsultaDTO validar(AgendamentoDeConsultaDTO dto) {
+		if(HorariosDeConsultas.fromString(dto.horario().toString())){
+			return new ResponseConsultaDTO(true,"erro",null);	
+		}
+		
+		return new ResponseConsultaDTO(false,"erro",null);
+	}
+
+}

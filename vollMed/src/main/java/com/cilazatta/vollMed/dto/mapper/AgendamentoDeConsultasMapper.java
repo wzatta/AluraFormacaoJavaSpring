@@ -12,10 +12,7 @@ public class AgendamentoDeConsultasMapper {
 	public AgendamentoDeConsultaDTO toDTO(AgendamentoDeConsultas obj) {
 		return new AgendamentoDeConsultaDTO(
 				obj.getPaciente().getId(),
-				obj.getPaciente().getNome(),
 				obj.getMedico().getId(),
-				obj.getMedico().getNome(),
-				obj.getDataDoAgendamento(),
 				obj.getDataAgendada(),
 				obj.getHoraAgendada()
 				);

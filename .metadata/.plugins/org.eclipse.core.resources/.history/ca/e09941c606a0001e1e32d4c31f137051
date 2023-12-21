@@ -1,0 +1,24 @@
+package com.cilazatta.vollMed.services.validadores;
+
+import java.util.List;
+
+import com.cilazatta.vollMed.dto.AgendamentoDeConsultaDTO;
+import com.cilazatta.vollMed.dto.ResponseConsultaDTO;
+import com.cilazatta.vollMed.entities.interfaces.ValidadorAgendamentoDeConsulta;
+import com.cilazatta.vollMed.enums.HorariosDeConsultas;
+
+public class ConsultaValidarHorarioAgendado implements ValidadorAgendamentoDeConsulta {
+
+	@Override
+	public ResponseConsultaDTO validar(AgendamentoDeConsultaDTO dto) {
+		
+		List<HorariosDeConsultas> horarios = HorariosDeConsultas. 
+		
+		for (HorariosDeConsultas horario : HorariosDeConsultas) {
+			
+		}
+		
+		
+	}
+
+}

@@ -1,0 +1,43 @@
+package com.cilazatta.vollMed.services.validadores;
+
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
+import org.springframework.stereotype.Component;
+
+import com.cilazatta.vollMed.dto.AgendamentoDeConsultaDTO;
+import com.cilazatta.vollMed.dto.ResponseConsultaDTO;
+import com.cilazatta.vollMed.entities.interfaces.ValidadorAgendamentoDeConsulta;
+
+@Component
+public class ConsultaValidarHorarioDeAtendimento implements ValidadorAgendamentoDeConsulta {
+	
+	public ResponseConsultaDTO validar(AgendamentoDeConsultaDTO dto) {
+		if (this.verificarHorarioDeAtendimento()) {
+			return new ResponseConsultaDTO(false,
+					"Horario de Atendimento de Segunda a Sabado Horário 7:00 as 19:00 horas", null);
+		}
+		
+		if (dto.dataDaConsulta().getDayOfWeek() == DayOfWeek.SUNDAY) {
+			return new ResponseConsultaDTO(false, "Domingo não há Atendimento", null);
+		}
+		
+			return new ResponseConsultaDTO(true,"",null);
+	}
+
+	private boolean verificarHorarioDeAtendimento() {
+		if (LocalDateTime.now(ZoneId.systemDefault()).getDayOfWeek() == DayOfWeek.SUNDAY) {
+			return false;
+		}
+
+		if (LocalDateTime.now(ZoneId.systemDefault()).getHour() < 7
+				|| LocalDateTime.now(ZoneId.systemDefault()).getHour() > 19) {
+			return false;
+		}
+
+		return true;
+	}
+	
+	
+}

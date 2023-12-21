@@ -1,5 +1,9 @@
 package com.cilazatta.vollMed.enums;
 
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public enum HorariosDeConsultas {
 
 	HOR01("07:30"),
@@ -14,6 +18,7 @@ public enum HorariosDeConsultas {
 	HOR10("17:30");
 	
 	private final String horario;
+	private List<String> listaHorario;
 	
 	HorariosDeConsultas(String horario){
 		this.horario = horario;
@@ -23,4 +28,11 @@ public enum HorariosDeConsultas {
 		return this.horario;
 	}
 	
+	public List<String> getListaHorarios(){
+		for(HorariosDeConsultas horario : HorariosDeConsultas.values()) {
+			this.listaHorario.add(horario.getHorario());
+		}
+		return this.listaHorario;
+	}
+
 }

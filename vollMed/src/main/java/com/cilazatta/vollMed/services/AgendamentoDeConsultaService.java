@@ -1,14 +1,11 @@
 package com.cilazatta.vollMed.services;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.cilazatta.vollMed.dto.AgendamentoDeConsultaDTO;
@@ -18,7 +15,7 @@ import com.cilazatta.vollMed.dto.mapper.AgendamentoDeConsultasMapper;
 import com.cilazatta.vollMed.entities.AgendamentoDeConsultas;
 import com.cilazatta.vollMed.entities.CadastroDeMedicos;
 import com.cilazatta.vollMed.entities.CadastroDePaciente;
-import com.cilazatta.vollMed.enums.HorariosDeConsultas;
+import com.cilazatta.vollMed.entities.interfaces.ValidadorAgendamentoDeConsulta;
 import com.cilazatta.vollMed.exceptions.RecordNotFoundException;
 import com.cilazatta.vollMed.repository.AgendamentoDeConsultaRepository;
 import com.cilazatta.vollMed.repository.CadastroDeMedicosRepository;
@@ -29,7 +26,11 @@ public class AgendamentoDeConsultaService {
 
 	private CadastroDeMedicos medico;
 	private CadastroDePaciente paciente;
-
+	
+	@Autowired
+	private List<ValidadorAgendamentoDeConsulta> validadores;
+	
+	
 	private final CadastroDePacienteRepository pacienteRepo;
 	private final CadastroDeMedicosRepository medicoRepo;
 	private final AgendamentoDeConsultaRepository agendaRepo;
@@ -46,70 +47,30 @@ public class AgendamentoDeConsultaService {
 
 	public ResponseConsultaDTO validarConsulta(AgendamentoDeConsultaDTO dto) {
 
-		if (this.verificarHorarioDeAtendimento()) {
-			return new ResponseConsultaDTO(false,
-					"Horario de Atendimento de Segunda a Sabado Horário 7:00 as 19:00 horas", null);
+		for (ValidadorAgendamentoDeConsulta validador : validadores) {
+			if(validador.validar(dto).status()==false) {
+				return validador.validar(dto);
+			}
 		}
+		
 
-		if (dto.dataDaConsulta().getDayOfWeek() == DayOfWeek.SUNDAY) {
-			return new ResponseConsultaDTO(false, "Domingo não há Atendimento", null);
-		}
-
-//==============================================================		
-		if (!this.medicoRepo.findById(dto.idMedico()).filter(medico -> medico.getIsInativo() == false).isPresent()) {
-			return new ResponseConsultaDTO(false, "Medico Não Cadastrado", null);
-		}
-
-		if (!this.pacienteRepo.findById(dto.idPaciente()).filter(paciente -> paciente.getIsInativo() == false)
-				.isPresent()) {
-			return new ResponseConsultaDTO(false, "Paciente Não Cadastrado", null);
-		}
-
-		this.medico = this.medicoRepo.findById(dto.idMedico()).filter(medico -> medico.getIsInativo() == false).get();
+		this.medico = this.medicoRepo.findById(dto.idMedico())
+				.filter(medico -> medico.getIsInativo() == false).orElseThrow();
 
 		this.paciente = this.pacienteRepo.findById(dto.idPaciente())
-				.filter(paciente -> paciente.getIsInativo() == false).get();
+				.filter(paciente -> paciente.getIsInativo() == false).orElseThrow(null);
 
-//==============================================================================		
-
-		if (dto.dataDaConsulta().isEqual(LocalDate.now())) {
-			if (!this.converteEmumEmHoras(dto.horario())) {
-				return new ResponseConsultaDTO(false,
-						"Consulta deverá ser marcada com no minimo 1 hora de Antecedencia", null);
-			}
-		}
-
-		if (dto.dataDaConsulta().isAfter(LocalDate.now())) {
-			if (this.verificarDisponibilidadeDeHorarioDoMedico(medico, dto.dataDaConsulta(), dto.horario())) {
-				return new ResponseConsultaDTO(false, "Horário Indisponivel para este Medico", null);
-			}
-
-			if (this.verificarSeHaAgendamentoParaOpacienteNoMesmoHorario(paciente, dto.dataDaConsulta(),
-					dto.horario())) {
-				return new ResponseConsultaDTO(false, "Paciente Agendado com Outro Medico neste Horário", null);
-			}
-		}
-
+		
 		return this.agendarConsulta(dto);
 
 	}
 
-	private Boolean verificarDisponibilidadeDeHorarioDoMedico(CadastroDeMedicos medico, LocalDate dataDaConsulta,
-			HorariosDeConsultas horario) {
-		return this.agendaRepo.findByMedicoAndDataAgendadaAndHoraAgendada(medico, dataDaConsulta, horario).isPresent();
-	}
-
-	private boolean verificarSeHaAgendamentoParaOpacienteNoMesmoHorario(CadastroDePaciente paciente,
-			LocalDate dataDaConsulta, HorariosDeConsultas horario) {
-		return this.agendaRepo.findByPacienteAndDataAgendadaAndHoraAgendada(paciente, dataDaConsulta, horario)
-				.isPresent();
-	}
-
-	private ResponseConsultaDTO agendarConsulta(AgendamentoDeConsultaDTO dto) {
+	public ResponseConsultaDTO agendarConsulta(AgendamentoDeConsultaDTO dto) {
 		AgendamentoDeConsultas agenda = new AgendamentoDeConsultas();
+		
 		agenda.setPaciente(paciente);
 		agenda.setMedico(medico);
-		agenda.setDataDoAgendamento(dto.dataDoAgendamento());
+		agenda.setDataDoAgendamento(LocalDateTime.now());
 		agenda.setDataAgendada(dto.dataDaConsulta());
 		agenda.setHoraAgendada(dto.horario());
 		try {
@@ -135,33 +96,6 @@ public class AgendamentoDeConsultaService {
 				.findByMedicoAndDataAgendadaAfter(medico, LocalDate.now()).stream().map(r -> this.mapper.toAgendaDTO(r))
 				.collect(Collectors.toList());
 		return meusCompromissos;
-	}
-
-	public Boolean converteEmumEmHoras(HorariosDeConsultas horaEnum) {
-// Este metodo converte o enum para horas e verifica se esta hora convertida é maior ou igual a 1 hora do horario atual.
-		DateTimeFormatter horarioEnum = DateTimeFormatter.ofPattern("HH:mm");
-		LocalTime horario = LocalTime.parse(horaEnum.getHorario(), horarioEnum);
-		if (horario.isAfter(LocalTime.now())) {
-			int difHorario = horario.getHour() - LocalTime.now().getHour();
-			if (difHorario >= 1) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-//===========================================================================
-	private boolean verificarHorarioDeAtendimento() {
-		if (LocalDateTime.now(ZoneId.systemDefault()).getDayOfWeek() == DayOfWeek.SUNDAY) {
-			return false;
-		}
-
-		if (LocalDateTime.now(ZoneId.systemDefault()).getHour() < 7
-				|| LocalDateTime.now(ZoneId.systemDefault()).getHour() > 19) {
-			return false;
-		}
-
-		return true;
 	}
 
 }

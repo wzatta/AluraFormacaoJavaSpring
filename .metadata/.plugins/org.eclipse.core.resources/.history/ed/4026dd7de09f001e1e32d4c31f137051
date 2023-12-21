@@ -1,0 +1,26 @@
+package com.cilazatta.vollMed.services;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.cilazatta.vollMed.dto.AgendamentoDeConsultaDTO;
+import com.cilazatta.vollMed.dto.ResponseConsultaDTO;
+import com.cilazatta.vollMed.entities.interfaces.ValidadorAgendamentoDeConsulta;
+
+public class AgendarConsultaValidar {
+	
+	@Autowired
+	private List<ValidadorAgendamentoDeConsulta> validadores;
+	
+	public ResponseConsultaDTO validarConsulta(AgendamentoDeConsultaDTO dto) {
+		
+		validadores.forEach(v -> { 
+			ResponseConsultaDTO responseConsulta = v.validar(dto);
+			if(responseConsulta.status()==false) {
+				return responseConsulta;
+			}
+			});
+	}
+
+}

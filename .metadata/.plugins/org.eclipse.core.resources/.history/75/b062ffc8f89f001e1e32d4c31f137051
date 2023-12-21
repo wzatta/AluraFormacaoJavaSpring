@@ -1,0 +1,17 @@
+package com.cilazatta.vollMed.services.validadores;
+
+import com.cilazatta.vollMed.dto.AgendamentoDeConsultaDTO;
+import com.cilazatta.vollMed.dto.ResponseConsultaDTO;
+import com.cilazatta.vollMed.entities.interfaces.ValidadorAgendamentoDeConsulta;
+
+public class ConsultaValidarPacienteNaoMarcarConsultaMesmoHorario implements ValidadorAgendamentoDeConsulta {
+
+	@Override
+	public ResponseConsultaDTO validar(AgendamentoDeConsultaDTO dto) {
+		if (this.verificarSeHaAgendamentoParaOpacienteNoMesmoHorario(paciente, dto.dataDaConsulta(),
+				dto.horario())) {
+			return new ResponseConsultaDTO(false, "Paciente Agendado com Outro Medico neste Horário", null);
+		}
+	}
+
+}
